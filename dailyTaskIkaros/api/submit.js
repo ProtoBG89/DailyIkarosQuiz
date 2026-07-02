@@ -4,7 +4,7 @@ import { Resend } from 'resend';
 const RICHTIGE_ANTWORT = "trigger"; 
 
 // Hier den E-Mail-Verteiler deines Teams eintragen
-const EMPFAENGER_EMAIL = "dein-team-verteiler@firma.com"; 
+const EMPFAENGER_EMAIL = "minko.zahariev@worldline.com"; 
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
