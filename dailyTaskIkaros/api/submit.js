@@ -18,7 +18,9 @@ function getFormattedDate() {
 
 // Hilfsfunktion, um die JSON-Daten sicher einzulesen
 function getQuizData() {
-    const filePath = path.join(process.cwd(), 'quiz-data.json');
+    // __dirname ist das Verzeichnis dieser submit.js-Datei (also dailyTaskIkaros/api)
+    // mit '..' springen wir einen Ordner höher in das Hauptverzeichnis (dailyTaskIkaros)
+    const filePath = path.join(__dirname, '..', 'quiz-data.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(fileContents);
 }
