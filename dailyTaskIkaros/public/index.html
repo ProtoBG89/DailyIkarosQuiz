@@ -11,17 +11,10 @@
         <h1>🏆 Das Daily Quiz</h1>
         <hr>
         
-        
-        <div class="question-box">
-            <h3>📅 Heutige Aufgabe (Thema: IKAROS Datumsobjekte):</h3>
+       <div class="question-box">
+            <h3 id="quiz-title">⏳ Quiz wird geladen...</h3>
             <p id="quiz-question">
-                Du hast eine Variable namens <strong>myDate</strong>, die ein Datumsobjekt repräsentiert. 
-                Du möchtest wissen, welcher Wochentag dieses Datum ist (0 für Sonntag, 1 für Montag... bis 6 für Samstag).<br><br>
-                Wie lautet der exakte Code, um mit der Variablen <code>myDate</code> diese Zahl für den Wochentag zu ermitteln?<br><br>
-                <strong>Hinweise:</strong><br>
-                • Die Antwort beginnt immer mit <code>myDate.</code><br>
-                • Sie ist case-sensitiv (achte auf Groß-/Kleinschreibung).<br>
-                • Die Antwort endet zwingend mit einem Semikolon <code>;</code>.
+                Einen Moment, die IT-Zentrale sucht die heutige Challenge heraus...
             </p>
         </div>
 
@@ -76,6 +69,25 @@
                 msgEle.className = "message error";
             }
         }
+		async function loadCurrentQuestion() {
+                try {
+                    const response = await fetch('/api/submit'); // Wir rufen die API ohne POST auf
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        document.getElementById('quiz-title').innerText = data.title;
+                        document.getElementById('quiz-question').innerHTML = data.question.replace(/\n/g, '<br>');
+                    } else {
+                        document.getElementById('quiz-title').innerText = "🛑 Fehler";
+                        document.getElementById('quiz-question').innerText = data.message;
+                    }
+                } catch (error) {
+                    document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
+                    document.getElementById('quiz-question').innerText = "Konnte keine Verbindung zum Quiz-Server herstellen.";
+                }
+            }
+            // Skript direkt ausführen
+            loadCurrentQuestion();
     </script>
 </body>
 </html>
