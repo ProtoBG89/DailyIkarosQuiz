@@ -1,78 +1,93 @@
-import { Resend } from 'resend';
-import fs from 'fs';
-import path from 'path';
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Quiz Team-Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>🏆 Das Daily Quiz</h1>
+        <hr>
+        
+       <div class="question-box">
+            <h3 id="quiz-title">⏳ Quiz wird geladen...</h3>
+            <p id="quiz-question">
+                Einen Moment, die IT-Zentrale sucht die heutige Challenge heraus...
+            </p>
+        </div>
 
-const EMPFAENGER_EMAIL = "982znm@gmail.com"; 
+        <div class="form-group">
+            <label for="username">Dein Name:</label>
+            <input type="text" id="username" placeholder="Vorname Nachname" required>
+        </div>
 
-// Hilfsfunktion, um das aktuelle Datum im Format YYYY-MM-DD (ZentralEuropa/Berlin) zu bekommen
-function getFormattedDate() {
-    const d = new Date();
-    // Erzwingt die deutsche Zeitzone, damit Vercel-Server (oft in USA) nicht das falsche Datum nehmen
-    const options = { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' };
-    const parts = new Intl.DateTimeFormat('de-DE', options).formatToParts(d);
-    const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
-    return `${year}-${month}-${day}`;
-}
+        <div class="form-group">
+            <label for="answer">Deine Antwort:</label>
+            <input type="text" id="answer" placeholder="Deine Lösung hier..." required>
+        </div>
 
-// Hilfsfunktion, um die JSON-Daten sicher einzulesen
-function getQuizData() {
-    const filePath = path.join(process.cwd(), 'quiz-data.json');
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(fileContents);
-}
+        <button onclick="sendAnswer()">Antwort abgeben</button>
+        
+        <p id="result-message" class="message"></p>
+    </div>
 
-export default async function handler(req, res) {
-    const todayStr = getFormattedDate();
-    const quizData = getQuizData();
-    const todaysQuiz = quizData[todayStr];
+    <script>
+        async function sendAnswer() {
+            const name = document.getElementById('username').value;
+            const answer = document.getElementById('answer').value;
+            const msgEle = document.getElementById('result-message');
 
-    // Falls für den heutigen Tag kein Rätsel eingetragen ist
-    if (!todaysQuiz) {
-        return res.status(404).json({ 
-            title: "🛑 Sendepause", 
-            message: `Für das heutige Datum (${todayStr}) wurde noch kein IT-Rätsel im System hinterlegt. Chef bescheid geben!` 
-        });
-    }
+            if (!name || !answer) {
+                msgEle.innerText = "Bitte fülle beide Felder aus!";
+                msgEle.className = "message error";
+                return;
+            }
 
-    // FALL 1: Die Webseite fordert die Frage an (GET-Request)
-    if (req.method === 'GET') {
-        return res.status(200).json({
-            title: todaysQuiz.title,
-            question: todaysQuiz.question
-            // Die "solution" wird hier natürlich NICHT mitgesendet, damit niemand im Browser spicken kann!
-        });
-    }
-
-    // FALL 2: Ein Kollege schickt eine Antwort ab (POST-Request)
-    if (req.method === 'POST') {
-        const { name, answer } = req.body;
-
-        if (!name || !answer) {
-            return res.status(400).json({ message: 'Name und Antwort fehlen.' });
-        }
-
-        // Abgleich mit der Lösung aus dem JSON-File für den heutigen Tag
-        if (answer.trim() === todaysQuiz.solution) {
-            const resend = new Resend(process.env.RESEND_API_KEY);
+            msgEle.innerText = "Prüfe Antwort...";
+            msgEle.className = "message";
 
             try {
-                await resend.emails.send({
-                    from: 'Quiz-Bot <onboarding@resend.dev>',
-                    to: EMPFAENGER_EMAIL,
-                    subject: `🏆 Quiz gelöst von ${name}!`,
-                    html: `<p><strong>${name}</strong> hat das Daily Quiz am ${todayStr} erfolgreich gelöst!</p><p>Eingegebene Lösung: <code>${answer}</code></p>`
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, answer })
                 });
 
-                return res.status(200).json({ message: 'Absolut richtig! Die IT-Götter sind stolz auf dich. Benachrichtigung wurde an den Lead gesendet!' });
-            } catch (error) {
-                return res.status(500).json({ message: 'Code ist korrekt, aber E-Mail-Versand fehlgeschlagen.' });
-            }
-        } else {
-            return res.status(400).json({ message: 'Leider falsch! Achte penibel auf Groß-/Kleinschreibung und das Semikolon am Ende.' });
-        }
-    }
+                const data = await response.json();
 
-    return res.status(405).json({ message: 'Methode nicht erlaubt' });
-}
+                if (response.ok) {
+                    msgEle.innerText = "🎉 " + data.message;
+                    msgEle.className = "message success";
+                } else {
+                    msgEle.innerText = "❌ " + data.message;
+                    msgEle.className = "message error";
+                }
+            } catch (error) {
+                msgEle.innerText = "Fehler bei der Übertragung.";
+                msgEle.className = "message error";
+            }
+        }
+		async function loadCurrentQuestion() {
+                try {
+                    const response = await fetch('/api/submit'); // Wir rufen die API ohne POST auf
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        document.getElementById('quiz-title').innerText = data.title;
+                        document.getElementById('quiz-question').innerHTML = data.question.replace(/\n/g, '<br>');
+                    } else {
+                        document.getElementById('quiz-title').innerText = "🛑 Fehler";
+                        document.getElementById('quiz-question').innerText = data.message;
+                    }
+                } catch (error) {
+                    document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
+                    document.getElementById('quiz-question').innerText = "Konnte keine Verbindung zum Quiz-Server herstellen.";
+                }
+            }
+            // Skript direkt ausführen
+            loadCurrentQuestion();
+    </script>
+</body>
+</html>
