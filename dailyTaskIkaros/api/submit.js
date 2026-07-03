@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     // Abgleich (Groß-/Kleinschreibung ignorieren und Leerzeichen entfernen)
     //if (answer.trim().toLowerCase() === RICHTIGE_ANTWORT.toLowerCase()) {
-      if (answer.trim() === RICHTIGE_ANTWORT.toLowerCase()) {
+      if (answer.trim() === RICHTIGE_ANTWORT) {
         // E-Mail-Versand via Resend initiieren
         const resend = new Resend(process.env.RESEND_API_KEY);
 
