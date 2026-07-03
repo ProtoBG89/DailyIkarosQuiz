@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 // Hier trägst du das tägliche Lösungswort ein (alles in Kleinbuchstaben)
-const RICHTIGE_ANTWORT = "trigger"; 
+const RICHTIGE_ANTWORT = "myDate.getDay();"; 
 
 // Hier den E-Mail-Verteiler deines Teams eintragen
 const EMPFAENGER_EMAIL = "982znm@gmail.com"; 
@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     }
 
     // Abgleich (Groß-/Kleinschreibung ignorieren und Leerzeichen entfernen)
-    if (answer.trim().toLowerCase() === RICHTIGE_ANTWORT.toLowerCase()) {
-        
+    //if (answer.trim().toLowerCase() === RICHTIGE_ANTWORT.toLowerCase()) {
+      if (answer.trim() === RICHTIGE_ANTWORT.toLowerCase()) {
         // E-Mail-Versand via Resend initiieren
         const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,11 +31,11 @@ export default async function handler(req, res) {
                 html: `<p>Hallo!</p><p><strong>${name}</strong> hat das Daily Quiz gerade richtig beantwortet!</p><p>Eingegebene Lösung: <em>${answer}</em></p>`
             });
 
-            return res.status(200).json({ message: 'Richtig! Die Benachrichtigung wurde an den Verteiler gesendet!' });
+            return res.status(200).json({ message: 'Absolut richtig! Die IT-Götter sind stolz auf dich. Benachrichtigung wurde an den Lead gesendet!' });
         } catch (error) {
             return res.status(500).json({ message: 'Antwort korrekt, aber E-Mail-Versand fehlgeschlagen.' });
         }
     } else {
-        return res.status(400).json({ message: 'Leider falsch! Versuchs nochmal.' });
+        return res.status(400).json({ message: 'Leider falsch! Achte penibel auf Groß-/Kleinschreibung und das Semikolon am Ende.' });
     }
 }
