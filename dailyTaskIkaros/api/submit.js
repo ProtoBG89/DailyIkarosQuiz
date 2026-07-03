@@ -2,12 +2,10 @@ import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 
-const EMPFAENGER_EMAIL = "982znm@gmail.com"; 
+const EMPFAENGER_EMAIL = "deine-registrierte-resend-adresse@domain.com"; 
 
-// Hilfsfunktion, um das aktuelle Datum im Format YYYY-MM-DD (ZentralEuropa/Berlin) zu bekommen
 function getFormattedDate() {
     const d = new Date();
-    // Erzwingt die deutsche Zeitzone, damit Vercel-Server (oft in USA) nicht das falsche Datum nehmen
     const options = { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' };
     const parts = new Intl.DateTimeFormat('de-DE', options).formatToParts(d);
     const year = parts.find(p => p.type === 'year').value;
@@ -16,38 +14,42 @@ function getFormattedDate() {
     return `${year}-${month}-${day}`;
 }
 
-// Hilfsfunktion, um die JSON-Daten sicher einzulesen
 function getQuizData() {
-    // __dirname ist das Verzeichnis dieser submit.js-Datei (also dailyTaskIkaros/api)
-    // mit '..' springen wir einen Ordner höher in das Hauptverzeichnis (dailyTaskIkaros)
     const filePath = path.join(__dirname, '..', 'quiz-data.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(fileContents);
 }
 
 export default async function handler(req, res) {
+    // 🔒 1. PASSWORT-SCHUTZ PRÜFEN
+    // Holt das Passwort entweder aus dem Header (bei GET) oder aus dem Body (bei POST)
+    const clientPassword = req.headers['x-quiz-password'] || req.body?.password;
+    const masterPassword = process.env.QUIZ_PASSWORD;
+
+    if (!clientPassword || clientPassword !== masterPassword) {
+        return res.status(401).json({ message: 'Schade! Falsches oder fehlendes Passwort. Zugriff verweigert.' });
+    }
+
     const todayStr = getFormattedDate();
     const quizData = getQuizData();
     const todaysQuiz = quizData[todayStr];
 
-    // Falls für den heutigen Tag kein Rätsel eingetragen ist
     if (!todaysQuiz) {
         return res.status(404).json({ 
             title: "🛑 Sendepause", 
-            message: `Für das heutige Datum (${todayStr}) wurde noch kein IT-Rätsel im System hinterlegt. Chef bescheid geben!` 
+            message: `Für heute (${todayStr}) ist kein Rätsel hinterlegt.` 
         });
     }
 
-    // FALL 1: Die Webseite fordert die Frage an (GET-Request)
+    // FALL 1: Frage laden (GET)
     if (req.method === 'GET') {
         return res.status(200).json({
             title: todaysQuiz.title,
             question: todaysQuiz.question
-            // Die "solution" wird hier natürlich NICHT mitgesendet, damit niemand im Browser spicken kann!
         });
     }
 
-    // FALL 2: Ein Kollege schickt eine Antwort ab (POST-Request)
+    // FALL 2: Antwort abgeben (POST)
     if (req.method === 'POST') {
         const { name, answer } = req.body;
 
@@ -55,24 +57,21 @@ export default async function handler(req, res) {
             return res.status(400).json({ message: 'Name und Antwort fehlen.' });
         }
 
-        // Abgleich mit der Lösung aus dem JSON-File für den heutigen Tag
         if (answer.trim() === todaysQuiz.solution) {
             const resend = new Resend(process.env.RESEND_API_KEY);
-
             try {
                 await resend.emails.send({
                     from: 'Quiz-Bot <onboarding@resend.dev>',
                     to: EMPFAENGER_EMAIL,
                     subject: `🏆 Quiz gelöst von ${name}!`,
-                    html: `<p><strong>${name}</strong> hat das Daily Quiz am ${todayStr} erfolgreich gelöst!</p><p>Eingegebene Lösung: <code>${answer}</code></p>`
+                    html: `<p><strong>${name}</strong> hat das Quiz am ${todayStr} gelöst!</p><p>Lösung: <code>${answer}</code></p>`
                 });
-
-                return res.status(200).json({ message: 'Absolut richtig! Die IT-Götter sind stolz auf dich. Benachrichtigung wurde an den Lead gesendet!' });
+                return res.status(200).json({ message: 'Absolut richtig! E-Mail ist raus.' });
             } catch (error) {
-                return res.status(500).json({ message: 'Code ist korrekt, aber E-Mail-Versand fehlgeschlagen.' });
+                return res.status(500).json({ message: 'Code korrekt, aber Mail-Versand fehlgeschlagen.' });
             }
         } else {
-            return res.status(400).json({ message: 'Leider falsch! Achte penibel auf Groß-/Kleinschreibung und das Semikolon am Ende.' });
+            return res.status(400).json({ message: 'Leider falsch! Schau noch mal genau hin.' });
         }
     }
 
