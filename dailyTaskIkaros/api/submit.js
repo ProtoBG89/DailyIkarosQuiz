@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
 
-const EMPFAENGER_EMAIL = "deine-registrierte-resend-adresse@domain.com"; 
+const EMPFAENGER_EMAIL = "982znm@gmail.com"; 
 
 function getFormattedDate() {
     const d = new Date();
