@@ -3,79 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Quiz Team-Challenge</title>
+    <title>IKAROS Daily Quiz</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .hidden { display: none !important; }
+        .login-box { text-align: center; padding: 20px; }
+        .login-box input { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+        .login-box button { margin-top: 15px; width: 100%; }
+    </style>
 </head>
 <body>
+
     <div class="quiz-container">
         <h1>🏆 Das Daily Quiz</h1>
         <hr>
-        
-        
-        <div class="question-box">
-            <h3>📅 Heutige Aufgabe (Thema: IKAROS Datumsobjekte):</h3>
-            <p id="quiz-question">
-                Du hast eine Variable namens <strong>myDate</strong>, die ein Datumsobjekt repräsentiert. 
-                Du möchtest wissen, welcher Wochentag dieses Datum ist (0 für Sonntag, 1 für Montag... bis 6 für Samstag).<br><br>
-                Wie lautet der exakte Code, um mit der Variablen <code>myDate</code> diese Zahl für den Wochentag zu ermitteln?<br><br>
-                <strong>Hinweise:</strong><br>
-                • Die Antwort beginnt immer mit <code>myDate.</code><br>
-                • Sie ist case-sensitiv (achte auf Groß-/Kleinschreibung).<br>
-                • Die Antwort endet zwingend mit einem Semikolon <code>;</code>.
-            </p>
+
+        <div id="login-section" class="login-box hidden">
+            <h3>🔒 Interner IT-Bereich</h3>
+            <p>Bitte gib das Team-Passwort ein, um die heutige Challenge zu sehen:</p>
+            <input type="password" id="team-password" placeholder="Passwort hier eingeben...">
+            <button onclick="savePassword()">Einloggen</button>
+            <p id="login-error" style="color: red; margin-top: 10px; font-weight: bold;"></p>
         </div>
 
-        <div class="form-group">
-            <label for="username">Dein Name:</label>
-            <input type="text" id="username" placeholder="Vorname Nachname" required>
-        </div>
+        <div id="quiz-section" class="hidden">
+            <div class="question-box">
+                <h3 id="quiz-title">⏳ Quiz wird geladen...</h3>
+                <p id="quiz-question">Einen Moment...</p>
+            </div>
 
-        <div class="form-group">
-            <label for="answer">Deine Antwort:</label>
-            <input type="text" id="answer" placeholder="Deine Lösung hier..." required>
-        </div>
+            <div class="input-group">
+                <label for="username"><strong>Dein Name:</strong></label>
+                <input type="text" id="username" placeholder="Vorname Nachname">
+            </div>
 
-        <button onclick="sendAnswer()">Antwort abgeben</button>
-        
-        <p id="result-message" class="message"></p>
+            <div class="input-group">
+                <label for="answer"><strong>Deine Antwort:</strong></label>
+                <input type="text" id="answer" placeholder="Deine Lösung hier...">
+            </div>
+
+            <button onclick="submitAnswer()">Antwort abgeben</button>
+            <p id="result-message"></p>
+        </div>
     </div>
 
     <script>
-        async function sendAnswer() {
-            const name = document.getElementById('username').value;
-            const answer = document.getElementById('answer').value;
-            const msgEle = document.getElementById('result-message');
+        // Wir holen das gespeicherte Passwort aus dem Browser-Speicher (falls vorhanden)
+        let savedPassword = localStorage.getItem('team_quiz_pw') || '';
 
-            if (!name || !answer) {
-                msgEle.innerText = "Bitte fülle beide Felder aus!";
-                msgEle.className = "message error";
+        async function loadCurrentQuestion() {
+            if (!savedPassword) {
+                // Kein Passwort da? Login anzeigen
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('quiz-section').classList.add('hidden');
                 return;
             }
 
-            msgEle.innerText = "Prüfe Antwort...";
-            msgEle.className = "message";
+            try {
+                // Frage mit dem Passwort im Header anfordern
+                const response = await fetch('/api/submit', {
+                    headers: { 'x-quiz-password': savedPassword }
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Passwort korrekt! Quiz anzeigen
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('quiz-section').classList.remove('hidden');
+                    document.getElementById('quiz-title').innerText = data.title;
+                    document.getElementById('quiz-question').innerHTML = data.question.replace(/\n/g, '<br>');
+                } else {
+                    // Passwort war falsch (z.B. vom Server abgelehnt)
+                    localStorage.removeItem('team_quiz_pw');
+                    savedPassword = '';
+                    document.getElementById('login-error').innerText = data.message;
+                    document.getElementById('login-section').classList.remove('hidden');
+                    document.getElementById('quiz-section').classList.add('hidden');
+                }
+            } catch (error) {
+                document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
+                document.getElementById('quiz-question').innerText = "Konnte keine Verbindung zur API aufbauen.";
+            }
+        }
+
+        function savePassword() {
+            const inputPw = document.getElementById('team-password').value;
+            savedPassword = inputPw;
+            localStorage.setItem('team_quiz_pw', inputPw);
+            loadCurrentQuestion();
+        }
+
+        async function submitAnswer() {
+            const name = document.getElementById('username').value;
+            const answer = document.getElementById('answer').value;
+            const resultMsg = document.getElementById('result-message');
+
+            resultMsg.innerText = "Prüfe Antwort...";
+            resultMsg.style.color = "orange";
 
             try {
                 const response = await fetch('/api/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, answer })
+                    body: JSON.stringify({ name, answer, password: savedPassword })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    msgEle.innerText = "🎉 " + data.message;
-                    msgEle.className = "message success";
+                    resultMsg.innerText = data.message;
+                    resultMsg.style.color = "green";
                 } else {
-                    msgEle.innerText = "❌ " + data.message;
-                    msgEle.className = "message error";
+                    resultMsg.innerText = data.message;
+                    resultMsg.style.color = "red";
                 }
             } catch (error) {
-                msgEle.innerText = "Fehler bei der Übertragung.";
-                msgEle.className = "message error";
+                resultMsg.innerText = "Fehler bei der Übertragung.";
+                resultMsg.style.color = "red";
             }
         }
+
+        // Direkt beim Seitenaufruf ausführen
+        loadCurrentQuestion();
     </script>
 </body>
 </html>
