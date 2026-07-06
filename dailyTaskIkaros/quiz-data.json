@@ -4,10 +4,10 @@
     "question": "Du möchtest die Hauptakte laden. Das Aktenzeichen (Referenznummer) liegt dir bereits in der Variable 'refNo' vor. Welche Methode des globalen fs-Objekts nutzt du, um die Akte mit dieser Variable abzufragen?",
     "solution": "fs.getCcaseByRefNo(refNo);"
   },
-  "2026-07-07": {
-    "title": "⚡ Ereignisse abbrechen (Dienstag)",
-    "question": "In einem Validierungsskript vor dem Speichern einer Akte stellst du einen Fehler fest und möchtest das Speichern abbrechen sowie dem Benutzer eine Fehlermeldung anzeigen. Welches Objekt und welche Methode verwendest du dafür?",
-    "solution": "cancelEvent(message);"
+"2026-07-07": {
+    "title": "⚡ Vorgang erzeugen (Dienstag)",
+    "question": "Du möchtest direkt auf einem Akten-Objekt namens 'cCase' einen neuen Vorgang basierend auf dem Vorlagencode 'NS03' erstellen. Welche Methode rufst du auf dem cCase Objekt auf, um diesen Vorgang zu generieren?",
+    "solution": "cCase.createEvent('NS03');"
   },
   "2026-07-08": {
     "title": "☕ UI Dialog-Steuerung (Mittwoch)",
