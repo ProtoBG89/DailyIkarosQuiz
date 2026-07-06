@@ -1,8 +1,8 @@
 {
   "2026-07-06": {
     "title": "📂 IKAROS Akten-Zugriff (Montag)",
-    "question": "Du möchtest eine Akte anhand ihrer ID laden, um auf ihre Daten zuzugreifen. Welche Methode des globalen fs-Objekts nutzt du dafür? PS: Die ID der Akte hast du davor bereits in eine Variable namens id zwischengespeichert, diese kannst du als parameter für die Methode/Funktion benutzen.",
-    "solution": "fs.getCcaseById(id);"
+    "question": "Du möchtest die Hauptakte laden. Das Aktenzeichen (Referenznummer) liegt dir bereits in der Variable 'refNo' vor. Welche Methode des globalen fs-Objekts nutzt du, um die Akte mit dieser Variable abzufragen?",
+    "solution": "fs.getCcaseByRefNo(refNo);"
   },
   "2026-07-07": {
     "title": "⚡ Ereignisse abbrechen (Dienstag)",
