@@ -71,7 +71,7 @@ export default async function handler(req, res) {
                 return res.status(500).json({ message: 'Code korrekt, aber Mail-Versand fehlgeschlagen.' });
             }
         } else {
-            return res.status(400).json({ message: 'Leider falsch! Schau noch mal genau hin.' });
+            return res.status(400).json({ message: 'Leider falsch! Schau noch mal genau hin. (Hinweis: Die Eingabe ist case-sensitiv und muss mit einem Semikolon ; enden)' });
         }
     }
 
