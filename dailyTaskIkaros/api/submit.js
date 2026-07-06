@@ -21,7 +21,7 @@ function getQuizData() {
 }
 
 export default async function handler(req, res) {
-    // 🔒 1. PASSWORT-SCHUTZ PRÜFEN
+    // PASSWORT-SCHUTZ PRÜFEN
     // Holt das Passwort entweder aus dem Header (bei GET) oder aus dem Body (bei POST)
     const clientPassword = req.headers['x-quiz-password'] || req.body?.password;
     const masterPassword = process.env.QUIZ_PASSWORD;
