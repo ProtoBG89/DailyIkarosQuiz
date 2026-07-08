@@ -1,72 +1,107 @@
 {
-  "2026-07-06": {
-    "title": "📂 IKAROS Akten-Zugriff (Montag)",
-    "question": "Du möchtest die Hauptakte laden. Das Aktenzeichen (Referenznummer) liegt dir bereits in der Variable 'refNo' vor. Welche Methode des globalen fs-Objekts nutzt du, um die Akte mit dieser Variable abzufragen?",
-    "solution": "fs.getCcaseByRefNo(refNo);"
-  },
-"2026-07-07": {
-    "title": "⚡ Vorgang erzeugen (Dienstag)",
-    "question": "Du möchtest direkt auf einem Akten-Objekt namens 'cCase' einen neuen Vorgang basierend auf dem Vorlagencode 'NS03' erstellen. Welche Methode rufst du auf dem cCase Objekt auf, um diesen Vorgang zu generieren?",
-    "solution": "cCase.createEvent('NS03');"
+  "2026-07-09": {
+    "title": "📂 Datenschutz-Aktenzugriff (Donnerstag)",
+    "question": "Du möchtest eine Akte anhand ihres Aktenzeichens laden, dabei aber zwingend berücksichtigen, ob die Akte datenschutzrechtlich gesperrt ist. Welche Methode des <code>fs</code>-Objekts nutzt du hierfür mit der Variable <code>refNo</code>?",
+    "solution": "fs.getCcaseByRefNoIfNotPrivacyLocked(refNo);"
   },
   "2026-07-08": {
-    "title": "☕ UI Dialog-Steuerung (Mittwoch)",
-    "question": "Du programmierst ein UI-Skript für eine Maske und möchtest einen benutzerdefinierten Dialog namens 'MyCustomDialog' öffnen. Welche Methode des globalen ui-Objekts rufst du auf?",
-    "solution": "ui.openDialog('MyCustomDialog');"
-  },
-  "2026-07-09": {
-    "title": "🔤 Server-Aufrufe aus dem UI (Donnerstag)",
-    "question": "Clientseitige Maskenskripte dürfen nicht direkt auf die Datenbank zugreifen. Mit welcher Methode des ui-Objekts rufst du stattdessen eine serverseitige Funktion (z. B. 'calculateFees') auf?",
-    "solution": "ui.callServer('calculateFees');"
+    "title": "🔄 Aktenreaktivierung (Mittwoch)",
+    "question": "Wenn ein neuer Posteingang für eine bereits abgeschlossene Akte eingeht, soll diese im Server-Skript wieder in den aktiven Zustand versetzt werden. Welche Methode rufst du auf dem Akten-Objekt <code>cCase</code> auf?",
+    "solution": "cCase.reactivate();"
   },
   "2026-07-10": {
-    "title": "🔢 LINQ Ergebnismenge (Freitag)",
-    "question": "Du hast eine Datenbankabfrage über das linq-Objekt definiert. Mit welcher Methode führst du die Abfrage aus, wenn du weißt, dass sie genau einen einzigen Datensatz (oder eine Fehlermeldung bei mehreren) zurückliefern soll?",
-    "solution": "linq.executeSingle(statement);"
+    "title": "📅 Wiedervorlagen ersetzen (Freitag)",
+    "question": "Du möchtest eine bestehende Wiedervorlage auf der Akte durch eine neue ersetzen. Die Methode erwartet ein Datum (z. B. <code>date</code>) und den Code des neuen Vorgangs (<code>followUp</code>). Wie lautet diese Methode des <code>cCase</code>-Objekts?",
+    "solution": "cCase.replaceFollowUp(date, followUp);"
   },
   "2026-07-11": {
-    "title": "📦 Vorgang erstellen (Samstag)",
-    "question": "Du möchtest programmgesteuert einen neuen Vorgang im System anlegen. Welches globale IKAROS-Objekt stellt die Factory-Methode 'createTask' bereit?",
-    "solution": "fs"
+    "title": "📎 Belegzuordnung (Samstag)",
+    "question": "Um ein importiertes Posteingangsdokument (als Datei-Objekt <code>voucher</code> vorliegend) direkt an einen erzeugten IKAROS-Vorgang (<code>event</code>) anzuhängen, welche Methode des <code>Event</code>-Objekts verwendest du?",
+    "solution": "event.assignDocument(voucher);"
   },
   "2026-07-12": {
-    "title": "🔍 UDT Datensätze erzeugen (Sonntag)",
-    "question": "Um einen neuen Datensatz in einer User Defined Table (UDT) anzulegen, musst du zuerst eine leere Zeile für die Tabelle (z. B. 'udt_mein_tabelle') generieren. Welche Methode des udt-Objekts nutzt du dafür?",
-    "solution": "udt.createRecord('udt_mein_tabelle');"
+    "title": "📁 Dateisystem-Abfrage (Sonntag)",
+    "question": "Du möchtest alle im Importverzeichnis liegenden Dateien als Array einlesen. Über welches Unterobjekt des <code>fs</code>-Kontextes rufst die Methode <code>getFilesFromDirectory(directory)</code> auf?",
+    "solution": "fs.fileServer"
   },
   "2026-07-13": {
-    "title": "📆 Performance-Optimierung (Montag)",
-    "question": "Wenn du im Custom Code eine große Menge an Akten lädst und verarbeitest, solltest du den internen Cache des Frameworks regelmäßig leeren, um den Arbeitsspeicher zu schonen. Wie lautet die Methode des fs-Objekts hierfür?",
-    "solution": "fs.clearCache();"
+    "title": "💰 Buchungsverarbeitung (Montag)",
+    "question": "Wenn eine Zahlung nicht eindeutig zugeordnet werden kann, soll die laufende Transaktion auf den Status 'Unklar' gesetzt werden. Welche Methode rufst du auf dem <code>accountingTransaction</code>-Objekt auf?",
+    "solution": "accountingTransaction.setStatusToUncertain();"
   },
   "2026-07-14": {
-    "title": "✂️ String-Handling im Editor (Dienstag)",
-    "question": "Wenn ein Textfeld im IKAROS-Client leer gelassen wird, liefert das Framework beim Auslesen des Wertes keinen leeren String ('') zurück, sondern welchen JavaScript-Standardwert?",
-    "solution": "null"
+    "title": "🔍 Vorgangssuche via ID (Dienstag)",
+    "question": "Du möchtest bei einer Rücklastschrift den ursprünglichen Vorgang anhand seiner End-to-End-ID (<code>id</code>) lokalisieren. Welche Methode des <code>cCase</code>-Objekts durchsucht die Akte danach?",
+    "solution": "cCase.findEventToEndToEndIdentification(id);"
   },
   "2026-07-15": {
-    "title": "🧩 Modul-Abhängigkeiten (Mittwoch)",
-    "question": "Beim Erstellen eines neuen Custom-Code-Moduls mittels 'defineModule' kannst du andere Module als Abhängigkeiten laden. In welchem Parameter (Datentyp) der Factory-Funktion werden diese injizierten Module übergeben?",
-    "solution": "Array"
+    "title": "⚙️ String-Konfiguration auslesen (Mittwoch)",
+    "question": "Um einen Konfigurationswert als Text mit einem Fallback auszulesen, nutzt du <code>fs.getSettingString(name, application, default)</code>. Wie heißt die native Schwestermethode für Standard-Settings ohne vordefinierten String-Typ, die du im Posteingangs-Skript mit <code>(name, section)</code> aufrufst?",
+    "solution": "fs.getSetting(name, section);"
   },
   "2026-07-16": {
-    "title": "➕ GUID Generierung (Donnerstag)",
-    "question": "Für Schnittstellen oder eindeutige Identifikatoren im Custom Code benötigenis du eine weltweit eindeutige ID (UUID/GUID). Welche Methode des globalen fs-Objekts erzeugt diese Zeichenkette?",
-    "solution": "fs.createGuid();"
+    "title": "📊 Auskunftei-Schnittstelle (Donnerstag)",
+    "question": "Beim Start eines automatisierten Bonitäts- oder Adressimports via CreditAgency soll ein neuer Informationslauf registriert werden. Welche Methode des Objekts <code>fs.creditAgency</code> erzeugt diesen Lauf mit dem Parameter <code>interfaceCode</code>?",
+    "solution": "fs.creditAgency.createInformationRun(interfaceCode);"
   },
   "2026-07-17": {
-    "title": "🔎 LINQ Parameter (Freitag)",
-    "question": "Um SQL-Injections in Custom-Code-Datenbankabfragen zu verhindern, arbeiten wir mit parametrisierten LINQ-Statements. Welche Methode rufst du auf dem Statement-Objekt auf, um eine Variable sicher an einen Platzhalter zu binden?",
-    "solution": "statement.setParameter(name, value);"
+    "title": "⚡ Optimierter Lesezugriff (Freitag)",
+    "question": "Für das performante Verarbeiten von Auskunftei-Rückmeldungen stellt das Framework eine spezialisierte Lese-Methode für Akten bereit. Welche Methode nutzt du auf <code>fs.creditAgency</code> unter Übergabe der <code>cCaseId</code>?",
+    "solution": "fs.creditAgency.getCcaseOptimizedForReadingReplies(cCaseId);"
   },
   "2026-07-18": {
-    "title": "🔢 Fehlerbehandlung (Samstag)",
-    "question": "Wenn eine IKAROS-API-Methode fehlschlägt (z. B. weil eine Akte gesperrt ist), wirft das Framework eine Exception. Mit welchem JavaScript-Konstrukt fängst du diesen Fehler im Custom Code sauber ab?",
-    "solution": "try...catch"
+    "title": "💸 Forderungsaufstellung (Samstag)",
+    "question": "Du möchtest bei der Verbuchung von Gebühren oder Auskunfteikosten die vertraglichen Ansprüche direkt im Vorgang hinterlegen. Welche Methode des <code>Event</code>-Objekts fütterst du mit dem <code>claims</code>-Array?",
+    "solution": "event.setContractualClaim(claims);"
   },
   "2026-07-19": {
-    "title": "💡 Masken-Kontext (Sonntag)",
-    "question": "In einem UI-Skript, das innerhalb einer geöffneten Akte ausgeführt wird, möchtest du auf die Daten der aktuell im Client angezeigten Akte zugreifen. Welche Eigenschaft des ui-Objekts liefert dir diesen Kontext?",
-    "solution": "ui.ccase"
+    "title": "👤 Kontaktereignisse (Sonntag)",
+    "question": "Auskunftedaten betreffen primär den Schuldner (Debitor) als Person, nicht direkt die Akte. Mit welcher Methode des <code>debtor</code>-Objekts erzeugst du einen rein personen-bezogenen Vorgang mittels <code>eventCode</code>?",
+    "solution": "debtor.createContactEvent(eventCode);"
+  },
+  "2026-07-20": {
+    "title": "🏠 Adress-Validierung (Montag)",
+    "question": "Bevor eine von einer Auskunftei gelieferte Adresse neu gespeichert wird, soll geprüft werden, ob sie bereits existiert. Welche Methode des <code>debtor</code>-Objekts fügt das <code>address</code>-Objekt nur bei Neuheit hinzu?",
+    "solution": "debtor.addAddressIfNotExists(address);"
+  },
+  "2026-07-21": {
+    "title": "🧾 Steuersatz ermitteln (Dienstag)",
+    "question": "Für die korrekte Verbuchung von Kosten- und Auslagenvorgängen wird der aktuelle Mehrwertsteuersatz des Systems benötigt. Welche globale Methode des <code>fs</code>-Objekts liefert diesen Wert?",
+    "solution": "fs.getVatRate();"
+  },
+  "2026-07-22": {
+    "title": "🗄️ SQL-Kommando vorbereiten (Mittwoch)",
+    "question": "Um native SQL-Abfragen oder Stored Procedures direkt an die IKAROS-Datenbank abzusetzen, muss ein Command-Objekt initialisiert werden. Welche Methode des <code>fs</code>-Objekts nutzt du dafür mit dem String <code>statement</code>?",
+    "solution": "fs.getSqlSelect(statement);"
+  },
+  "2026-07-23": {
+    "title": "📊 SQL-Daten auslesen (Donnerstag)",
+    "question": "Nach der Ausführung einer nativen SQL-Query greifst du auf die Spaltenwerte des aktuellen Datensatzes zu. Welche Methode des ausgeführten Query-Objekts liest den Wert der Spalte <code>name</code> aus?",
+    "solution": "query.getField(name);"
+  },
+  "2026-07-24": {
+    "title": "🏁 Datensatz-Ende prüfen (Freitag)",
+    "question": "Beim Iterieren durch ein natives SQL-Ergebnis-Objekt namens <code>query</code>: Welche Eigenschaft (Property) liefert den booleschen Wert <code>true</code>, wenn das Ende der Ergebnismenge erreicht ist?",
+    "solution": "query.eof"
+  },
+  "2026-07-25": {
+    "title": "🖥️ Interaktive Dateiauswahl (Samstag)",
+    "question": "Läuft ein Importskript im interaktiven Modus, soll sich ein Windows-Dateiauswahldialog öffnen. Welche Methode des <code>fs.fileServer</code>-Objekts aufgerufen mit <code>(path, mask)</code> steuert diesen Dialog?",
+    "solution": "fs.fileServer.showFilePicker(path, mask);"
+  },
+  "2026-07-26": {
+    "title": "📄 CSV-Verarbeitung (Sonntag)",
+    "question": "Du verarbeitest eine strukturierte Auskunftsdatei über den <code>CsvReader</code>. Welche Methode der Factory-Klasse <code>fs.creditAgency.selectionResult</code> wandelt den <code>csvReader</code> in ein gültiges Selektionsergebnis um?",
+    "solution": "fs.creditAgency.selectionResult.createCsvReaderSelectionResult(csvReader);"
+  },
+  "2026-07-27": {
+    "title": "🛡️ Wiedervorlagenschutz (Montag)",
+    "question": "Um zu verhindern, dass automatisierte Prozesse eine kritische Wiedervorlage (Follow-up) manipulieren oder überschreiben, besitzt das <code>followUp</code>-Objekt welche boolesche Flag-Eigenschaft?",
+    "solution": "followUp.triggerProtection"
+  },
+  "2026-07-28": {
+    "title": "🧩 Modul-Injektion (Dienstag)",
+    "question": "Das IKAROS Custom Code Framework nutzt eine eigene Architektur zur Kapselung. Mit welcher Kernfunktion registrierst du ein neues, wiederverwendbares Modul unter Angabe von <code>(name, factory)</code>?",
+    "solution": "defineModule(name, factory);"
   }
 }
