@@ -4,7 +4,7 @@ import path from 'path';
 
 const EMPFAENGER_EMAIL = "982znm@gmail.com"; 
 
-// Ermittelt das aktuelle Datum verlässlich basierend auf der Berliner Zeitzone
+// Ermittelt das aktuelle Datum verlässlich basierend auf der Berliner Zeitzone (YYYY-MM-DD)
 function getFormattedDate() {
     const d = new Date();
     const options = { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -23,7 +23,7 @@ function getQuizData() {
 }
 
 export default async function handler(req, res) {
-    // 1. Sichere Passwort-Validierung über die Vercel-Umgebungsvariable QUIZ_PASSWORD
+    // 1. Sichere Passwort-Validierung (Header bei GET, Body bei POST)
     const clientPassword = req.headers['x-quiz-password'] || req.body?.password;
     const masterPassword = process.env.QUIZ_PASSWORD;
 
@@ -32,9 +32,10 @@ export default async function handler(req, res) {
     }
 
     if (!clientPassword || clientPassword !== masterPassword) {
-        return res.status(401).json({ message: '🔒 Falsches oder fehlendes Passwort. Zugriff verweigert.' });
+        return res.status(401).json({ message: 'Schade! Falsches oder fehlendes Passwort. Zugriff verweigert.' });
     }
 
+    // Verwende die Berliner Zeitzone für die Ermittlung des heutigen Tages
     const todayStr = getFormattedDate();
     let quizData;
     
@@ -47,11 +48,10 @@ export default async function handler(req, res) {
     const todaysQuiz = quizData[todayStr];
 
     if (!todaysQuiz) {
-        // Fallback-Struktur für das Frontend, wenn für den Tag kein Eintrag existiert
         if (req.method === 'GET') {
             return res.status(200).json({ 
                 title: "🏁 Sendepause", 
-                question: `Für heute (${todayStr}) ist kein IKAROS-Rätsel hinterlegt. Genieß den Feierabend!` 
+                question: `Für heute (${todayStr}) ist kein IKAROS-Rätsel hinterlegt.` 
             });
         }
         return res.status(404).json({ message: `Für heute (${todayStr}) existiert kein Rätsel.` });
@@ -70,15 +70,13 @@ export default async function handler(req, res) {
         const { name, answer } = req.body;
 
         if (!name || !answer) {
-            return res.status(400).json({ message: 'Wer bist du? Name und Antwort dürfen nicht leer sein.' });
+            return res.status(400).json({ message: 'Name und Antwort fehlen.' });
         }
 
-        // Bereinigt Eingabefehler wie versehentliche Leerzeichen am Anfang/Ende
         const cleanAnswer = answer.trim();
         const expectedSolution = todaysQuiz.solution.trim();
 
         if (cleanAnswer === expectedSolution) {
-            // Initialisiere Resend mit deinem Token aus Vercel
             const resend = new Resend(process.env.RESEND_API_KEY);
             
             try {
@@ -96,12 +94,12 @@ export default async function handler(req, res) {
                         </div>
                     `
                 });
-                return res.status(200).json({ message: `🎉 Absolut richtig, ${name}! Die Bestätigungs-Mail wurde versendet.` });
+                return res.status(200).json({ message: 'Absolut richtig! E-Mail ist raus.' });
             } catch (error) {
-                return res.status(500).json({ message: 'Code ist korrekt, aber der E-Mail-Versand über Resend schlug fehl.' });
+                return res.status(500).json({ message: 'Code korrekt, aber Mail-Versand fehlgeschlagen.' });
             }
         } else {
-            return res.status(400).json({ message: 'Leider nicht ganz richtig! Überprüfe die Schreibweise der IKAROS-Methode (Case-Sensitiv, Semikolon am Ende!).' });
+            return res.status(400).json({ message: 'Leider falsch! Schau noch mal genau hin. (Hinweis: Die Eingabe ist case-sensitiv und muss mit einem Semikolon ; enden)' });
         }
     }
 
