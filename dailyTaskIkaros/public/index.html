@@ -24,6 +24,25 @@
         </div>
 
         <div id="quiz-section" class="hidden">
+            
+            <div class="apple-user-container">
+                <span class="apple-label">🏆 Team Highscores (Live)</span>
+                <div class="apple-selector" style="background: #f5f5f7; padding: 15px; border-radius: 12px; gap: 20px; justify-content: space-around; margin-top: 6px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Farhat">0</div>
+                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Farhat</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Silviu">0</div>
+                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Silviu</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Jannik">0</div>
+                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Jannik</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="question-box">
                 <span class="pill-tag">Heutige Challenge</span>
                 <h2 id="quiz-title">⏳ Challenge wird geladen...</h2>
@@ -36,7 +55,7 @@
                     <label class="apple-card">
                         <input type="radio" name="colleague" value="Farhat" required>
                         <div class="card-content">
-                            <span class="avatar">👨‍💻</span>
+                            <img src="/images/kollege1.png" alt="Farhat" class="avatar-img">
                             <span class="name">Farhat</span>
                         </div>
                     </label>
@@ -44,7 +63,7 @@
                     <label class="apple-card">
                         <input type="radio" name="colleague" value="Silviu">
                         <div class="card-content">
-                            <span class="avatar">👩‍💻</span>
+                            <img src="/images/kollege2.png" alt="Silviu" class="avatar-img">
                             <span class="name">Silviu</span>
                         </div>
                     </label>
@@ -52,7 +71,7 @@
                     <label class="apple-card">
                         <input type="radio" name="colleague" value="Jannik">
                         <div class="card-content">
-                            <span class="avatar">🚀</span>
+                            <img src="/images/kollege3.png" alt="Jannik" class="avatar-img">
                             <span class="name">Jannik</span>
                         </div>
                     </label>
@@ -80,7 +99,6 @@
             }
 
             try {
-                // Wir senden das Passwort gesichert im Custom Header mit
                 const response = await fetch('/api/submit', {
                     headers: { 'x-quiz-password': savedPassword }
                 });
@@ -91,8 +109,14 @@
                     document.getElementById('quiz-section').classList.remove('hidden');
                     document.getElementById('quiz-title').innerText = data.title;
                     document.getElementById('quiz-question').innerHTML = data.question;
+
+                    // Live-Scores aus der Vercel KV-Datenbank mappen
+                    if (data.scores) {
+                        document.getElementById('score-Farhat').innerText = data.scores["Farhat"] || 0;
+                        document.getElementById('score-Silviu').innerText = data.scores["Silviu"] || 0;
+                        document.getElementById('score-Jannik').innerText = data.scores["Jannik"] || 0;
+                    }
                 } else {
-                    // Falls das Passwort ungültig geworden ist, Cache leeren
                     localStorage.removeItem('team_quiz_pw');
                     savedPassword = '';
                     document.getElementById('login-error').innerText = data.message;
@@ -146,7 +170,10 @@
                 if (response.ok) {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg success";
-                    document.getElementById('answer').value = ""; // Eingabefeld leeren bei Erfolg
+                    document.getElementById('answer').value = ""; // Eingabefeld leeren
+                    
+                    // Aktualisiert das Leaderboard live nach 1,5 Sekunden
+                    setTimeout(loadCurrentQuestion, 1500); 
                 } else {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg error";
