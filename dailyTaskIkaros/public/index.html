@@ -110,11 +110,11 @@
                     document.getElementById('quiz-title').innerText = data.title;
                     document.getElementById('quiz-question').innerHTML = data.question;
 
-                    // Live-Scores aus der Vercel KV-Datenbank mappen
+                    // Live-Scores aus Supabase mappen
                     if (data.scores) {
-                        document.getElementById('score-Farhat').innerText = data.scores["Farhat"] || 0;
-                        document.getElementById('score-Silviu').innerText = data.scores["Silviu"] || 0;
-                        document.getElementById('score-Jannik').innerText = data.scores["Jannik"] || 0;
+                        document.getElementById('score-Farhat').innerText = data.scores["Farhat"] !== undefined ? data.scores["Farhat"] : 0;
+                        document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
+                        document.getElementById('score-Jannik').innerText = data.scores["Jannik"] !== undefined ? data.scores["Jannik"] : 0;
                     }
                 } else {
                     localStorage.removeItem('team_quiz_pw');
@@ -161,8 +161,11 @@
             try {
                 const response = await fetch('/api/submit', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, answer, password: savedPassword })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-quiz-password': savedPassword // Passwort einheitlich als Header übergeben
+                    },
+                    body: JSON.stringify({ name, answer })
                 });
 
                 const data = await response.json();
