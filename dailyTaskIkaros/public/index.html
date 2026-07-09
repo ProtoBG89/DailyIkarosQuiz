@@ -5,101 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IKAROS Daily Quiz</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .hidden { display: none !important; }
-        .login-box { text-align: center; padding: 20px; }
-        .login-box input { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-        .login-box button { margin-top: 15px; width: 100%; }
-    </style>
 </head>
 <body>
 
     <div class="quiz-container">
-        <h1>🏆 Das Daily Quiz</h1>
-        <hr>
+        <header class="apple-header">
+            <h1>Das Daily Quiz</h1>
+            <p class="subtitle">IKAROS Custom Code Challenge</p>
+        </header>
 
         <div id="login-section" class="login-box hidden">
-            <h3>🔒 Interner IT-Bereich</h3>
-            <p>Bitte gib das Team-Passwort ein, um die heutige Challenge zu sehen:</p>
-            <input type="password" id="team-password" placeholder="Passwort hier eingeben...">
-            <button onclick="savePassword()">Einloggen</button>
-            <p id="login-error" style="color: red; margin-top: 10px; font-weight: bold;"></p>
+            <div class="lock-icon">🔒</div>
+            <h3>Interner IT-Bereich</h3>
+            <p>Bitte gib das Team-Passwort ein, um die heutige Challenge freizuschalten:</p>
+            <input type="password" id="team-password" placeholder="Passwort eingeben">
+            <button class="apple-btn" onclick="savePassword()">Einloggen</button>
+            <p id="login-error" class="error-msg"></p>
         </div>
 
         <div id="quiz-section" class="hidden">
             <div class="question-box">
-                <h3 id="quiz-title">⏳ Quiz wird geladen...</h3>
-                <p id="quiz-question">Einen Moment...</p>
+                <span class="pill-tag">Heutige Challenge</span>
+                <h2 id="quiz-title">⏳ Quiz wird geladen...</h2>
+                <div id="quiz-question" class="question-text">Einen Moment...</div>
             </div>
 
-<div class="apple-user-container">
-  <span class="apple-label">Wer bearbeitet das Quiz gerade?</span>
-  <div class="apple-selector">
-    
-    <label class="apple-card">
-      <input type="radio" name="colleague" value="Kollege 1" required>
-      <div class="card-content">
-        <span class="avatar">👨‍💻</span>
-        <span class="name">Kollege 1</span>
-      </div>
-    </label>
-    
-    <label class="apple-card">
-      <input type="radio" name="colleague" value="Kollege 2">
-      <div class="card-content">
-        <span class="avatar">👩‍💻</span>
-        <span class="name">Kollege 2</span>
-      </div>
-    </label>
-    
-    <label class="apple-card">
-      <input type="radio" name="colleague" value="Kollege 3">
-      <div class="card-content">
-        <span class="avatar">🚀</span>
-        <span class="name">Kollege 3</span>
-      </div>
-    </label>
-
-  </div>
-</div>
+            <div class="apple-user-container">
+                <span class="apple-label">Wer bearbeitet das Quiz gerade?</span>
+                <div class="apple-selector">
+                    <label class="apple-card">
+                        <input type="radio" name="colleague" value="Kollege 1" required>
+                        <div class="card-content">
+                            <span class="avatar">👨‍💻</span>
+                            <span class="name">Kollege 1</span>
+                        </div>
+                    </label>
+                    
+                    <label class="apple-card">
+                        <input type="radio" name="colleague" value="Kollege 2">
+                        <div class="card-content">
+                            <span class="avatar">👩‍💻</span>
+                            <span class="name">Kollege 2</span>
+                        </div>
+                    </label>
+                    
+                    <label class="apple-card">
+                        <input type="radio" name="colleague" value="Kollege 3">
+                        <div class="card-content">
+                            <span class="avatar">🚀</span>
+                            <span class="name">Kollege 3</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
 
             <div class="input-group">
-                <label for="answer"><strong>Deine Antwort:</strong></label>
-                <input type="text" id="answer" placeholder="Deine Lösung hier...">
+                <label for="answer" class="apple-label">Deine Antwort</label>
+                <input type="text" id="answer" placeholder="Dein Lösungscode hier...">
             </div>
 
-            <button onclick="submitAnswer()">Antwort abgeben</button>
+            <button class="apple-btn" onclick="submitAnswer()">Antwort abgeben</button>
             <p id="result-message"></p>
         </div>
     </div>
 
     <script>
-        // Wir holen das gespeicherte Passwort aus dem Browser-Speicher (falls vorhanden)
         let savedPassword = localStorage.getItem('team_quiz_pw') || '';
 
         async function loadCurrentQuestion() {
             if (!savedPassword) {
-                // Kein Passwort da? Login anzeigen
                 document.getElementById('login-section').classList.remove('hidden');
                 document.getElementById('quiz-section').classList.add('hidden');
                 return;
             }
 
             try {
-                // Frage mit dem Passwort im Header anfordern
                 const response = await fetch('/api/submit', {
                     headers: { 'x-quiz-password': savedPassword }
                 });
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Passwort korrekt! Quiz anzeigen
                     document.getElementById('login-section').classList.add('hidden');
                     document.getElementById('quiz-section').classList.remove('hidden');
                     document.getElementById('quiz-title').innerText = data.title;
                     document.getElementById('quiz-question').innerHTML = data.question.replace(/\n/g, '<br>');
                 } else {
-                    // Passwort war falsch (z.B. vom Server abgelehnt)
                     localStorage.removeItem('team_quiz_pw');
                     savedPassword = '';
                     document.getElementById('login-error').innerText = data.message;
@@ -120,12 +111,20 @@
         }
 
         async function submitAnswer() {
-            const name = document.getElementById('username').value;
+            // Holt dynamisch den Wert des ausgewählten Radio-Buttons
+            const selectedRadio = document.querySelector('input[name="colleague"]:checked');
+            const name = selectedRadio ? selectedRadio.value : '';
             const answer = document.getElementById('answer').value;
             const resultMsg = document.getElementById('result-message');
 
+            if (!name) {
+                resultMsg.innerText = "Bitte wähle zuerst aus, wer das Quiz bearbeitet.";
+                resultMsg.className = "status-msg error";
+                return;
+            }
+
             resultMsg.innerText = "Prüfe Antwort...";
-            resultMsg.style.color = "orange";
+            resultMsg.className = "status-msg processing";
 
             try {
                 const response = await fetch('/api/submit', {
@@ -138,18 +137,17 @@
 
                 if (response.ok) {
                     resultMsg.innerText = data.message;
-                    resultMsg.style.color = "green";
+                    resultMsg.className = "status-msg success";
                 } else {
                     resultMsg.innerText = data.message;
-                    resultMsg.style.color = "red";
+                    resultMsg.className = "status-msg error";
                 }
             } catch (error) {
                 resultMsg.innerText = "Fehler bei der Übertragung.";
-                resultMsg.style.color = "red";
+                resultMsg.className = "status-msg error";
             }
         }
 
-        // Direkt beim Seitenaufruf ausführen
         loadCurrentQuestion();
     </script>
 </body>
