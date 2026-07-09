@@ -1,4 +1,3 @@
-import { kv } from '@vercel/kv';
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
@@ -18,15 +17,32 @@ function getFormattedDate() {
 
 // Lädt die Quiz-Datenbank relativ zur Vercel-Serverless-Umgebung
 function getQuizData() {
-    // Da die Datei jetzt im selben Ordner wie submit.js liegt,
-    // liest Node.js sie direkt über __dirname aus.
     const filePath = path.join(__dirname, 'quiz-data.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(fileContents);
 }
 
+// Nutzt die exakten Umgebungsvariablen aus der Vercel-Supabase-Integration
+const SUPABASE_URL = process.env.STORAGE_URL;
+const SUPABASE_KEY = process.env.STORAGE_ANON_KEY;
+
+// Hilfsfunktion zur internen Kommunikation mit Supabase über die REST-API
+async function supabaseRequest(endpoint, method = 'GET', body = null) {
+    const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+    const config = { method, headers };
+    if (body) config.body = JSON.stringify(body);
+    const res = await fetch(url, config);
+    return res.json();
+}
+
 export default async function handler(req, res) {
-    // 1. Sichere Passwort-Validierung (Header bei GET, Body bei POST)
+    // Sichere Passwort-Validierung (Einheitlich über Header)
     const clientPassword = req.headers['x-quiz-password'] || req.body?.password;
     const masterPassword = process.env.QUIZ_PASSWORD;
 
@@ -60,18 +76,22 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: `Für heute (${todayStr}) existiert kein Rätsel.` });
     }
 
-    // --- FALL 1: Challenge & globale Highscores laden (GET) ---
+    // --- FALL 1: Challenge & globale Highscores aus Supabase laden (GET) ---
     if (req.method === 'GET') {
         try {
-            // Holt die aktuellen Scores aller Spieler live aus Vercel KV
-            const scores = await kv.hgetall('quiz_scores') || {};
+            const users = await supabaseRequest('quiz_scores?select=name,points');
+            const scoresObj = {};
+            
+            if (Array.isArray(users)) {
+                users.forEach(u => { scoresObj[u.name] = u.points; });
+            }
+
             return res.status(200).json({
                 title: todaysQuiz.title,
                 question: todaysQuiz.question,
-                scores: scores // Schickt die Live-Punkte an das Frontend mit
+                scores: scoresObj // Schickt die Live-Punkte an das Frontend mit
             });
         } catch (dbError) {
-            // Fallback für den Fall, dass die Datenbank nicht erreichbar ist
             return res.status(200).json({
                 title: todaysQuiz.title,
                 question: todaysQuiz.question,
@@ -95,14 +115,14 @@ export default async function handler(req, res) {
             const resend = new Resend(process.env.RESEND_API_KEY);
             
             try {
-                // Prüfen, wann dieser Kollege das letzte Mal richtig geantwortet hat
-                const lastSolvedKey = `last_solved:${name}`;
-                const lastSolvedDate = await kv.get(lastSolvedKey);
+                // Spielerdaten live aus Supabase holen
+                const userData = await supabaseRequest(`quiz_scores?name=eq.${name}`);
+                const user = Array.isArray(userData) ? userData[0] : null;
 
-                if (lastSolvedDate === todayStr) {
+                // Da last_solved in der DB ein DATE ist, liefert Postgres einen ISO-String (YYYY-MM-DD)
+                if (user && user.last_solved === todayStr) {
                     // --- ERNEUTE RICHTIGE ANTWORT AM SELBEN TAG (BLOCKIEREN + HUMOR) ---
                     try {
-                        // Sende die humorvolle Hacking-Warnung per Mail an dich
                         await resend.emails.send({
                             from: 'Quiz-Bot <onboarding@resend.dev>',
                             to: EMPFAENGER_EMAIL,
@@ -118,43 +138,45 @@ export default async function handler(req, res) {
                                 </div>
                             `
                         });
-                    } catch (mailErr) {
-                        console.error("Fehler beim Senden der Hacking-Mail:", mailErr);
-                    }
+                    } catch (mailErr) {}
 
-                    // Antwort an das Frontend zurückgeben (wird dort als grüner Banner gerendert)
                     return res.status(200).json({ 
                         message: `🛡️ Hacking-Versuch abgelehnt! Das System hat für heute bereits eine richtige Antwort von dir registriert... Nice try, ${name}! 😉` 
                     });
                 }
 
                 // --- ERSTE RICHTIGE ANTWORT DES TAGES (PUNKT GEBEN) ---
-                // Punkt im globalen Redis-Hash erhöhen (+1)
-                await kv.hincrby('quiz_scores', name, 1);
-                // Heutiges Datum für diesen Kollegen sperren
-                await kv.set(lastSolvedKey, todayStr);
-
-                // Reguläre Erfolgs-Mail an dich senden
-                await resend.emails.send({
-                    from: 'Quiz-Bot <onboarding@resend.dev>',
-                    to: EMPFAENGER_EMAIL,
-                    subject: `🏆 Quiz gelöst von ${name}!`,
-                    html: `
-                        <div style="font-family: -apple-system, sans-serif; padding: 20px; color: #1d1d1f;">
-                            <h2 style="color: #34c759;">🎉 Challenge erfolgreich bezwungen!</h2>
-                            <p><strong>${name}</strong> hat das IKAROS-Daily-Quiz am <strong>${todayStr}</strong> gelöst.</p>
-                            <p><em>Punkt gewertet: Ja ✅ (Erste Abgabe heute)</em></p>
-                            <hr style="border: none; border-top: 1px solid #d2d2d7; margin: 20px 0;" />
-                            <p style="font-size: 13px; color: #86868b; text-transform: uppercase; margin-bottom: 4px;">Eingereichte Lösung:</p>
-                            <pre style="background: #f5f5f7; padding: 12px; border-radius: 8px; font-size: 14px;"><code>${cleanAnswer}</code></pre>
-                        </div>
-                    `
+                const nextPoints = (user ? user.points : 0) + 1;
+                
+                // Supabase Update ausführen
+                await supabaseRequest(`quiz_scores?name=eq.${name}`, 'PATCH', {
+                    points: nextPoints,
+                    last_solved: todayStr
                 });
+
+                // Reguläre Erfolgs-Mail senden
+                try {
+                    await resend.emails.send({
+                        from: 'Quiz-Bot <onboarding@resend.dev>',
+                        to: EMPFAENGER_EMAIL,
+                        subject: `🏆 Quiz gelöst von ${name}!`,
+                        html: `
+                            <div style="font-family: -apple-system, sans-serif; padding: 20px; color: #1d1d1f;">
+                                <h2 style="color: #34c759;">🎉 Challenge erfolgreich bezwungen!</h2>
+                                <p><strong>${name}</strong> hat das IKAROS-Daily-Quiz am <strong>${todayStr}</strong> gelöst.</p>
+                                <p><em>Punkt gewertet: Ja ✅ (Erste Abgabe heute). Neuer Stand: ${nextPoints} Punkte.</em></p>
+                                <hr style="border: none; border-top: 1px solid #d2d2d7; margin: 20px 0;" />
+                                <p style="font-size: 13px; color: #86868b; text-transform: uppercase; margin-bottom: 4px;">Eingereichte Lösung:</p>
+                                <pre style="background: #f5f5f7; padding: 12px; border-radius: 8px; font-size: 14px;"><code>${cleanAnswer}</code></pre>
+                            </div>
+                        `
+                    });
+                } catch (mailErr) {}
                 
                 return res.status(200).json({ message: `🎉 Absolut richtig, ${name}! Dein Punkt wurde gezählt und die E-Mail ist raus.` });
 
             } catch (dbError) {
-                console.error("Vercel KV / Resend Error:", dbError);
+                console.error("Supabase / Resend Error:", dbError);
                 return res.status(500).json({ message: 'Code korrekt, aber Fehler bei der Verarbeitung im Backend.' });
             }
         } else {
