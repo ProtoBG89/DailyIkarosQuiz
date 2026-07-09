@@ -26,7 +26,7 @@
         <div id="quiz-section" class="hidden">
             <div class="question-box">
                 <span class="pill-tag">Heutige Challenge</span>
-                <h2 id="quiz-title">⏳ Quiz wird geladen...</h2>
+                <h2 id="quiz-title">⏳ Challenge wird geladen...</h2>
                 <div id="quiz-question" class="question-text">Einen Moment...</div>
             </div>
 
@@ -80,6 +80,7 @@
             }
 
             try {
+                // Wir senden das Passwort gesichert im Custom Header mit
                 const response = await fetch('/api/submit', {
                     headers: { 'x-quiz-password': savedPassword }
                 });
@@ -89,8 +90,9 @@
                     document.getElementById('login-section').classList.add('hidden');
                     document.getElementById('quiz-section').classList.remove('hidden');
                     document.getElementById('quiz-title').innerText = data.title;
-                    document.getElementById('quiz-question').innerHTML = data.question.replace(/\n/g, '<br>');
+                    document.getElementById('quiz-question').innerHTML = data.question;
                 } else {
+                    // Falls das Passwort ungültig geworden ist, Cache leeren
                     localStorage.removeItem('team_quiz_pw');
                     savedPassword = '';
                     document.getElementById('login-error').innerText = data.message;
@@ -99,19 +101,19 @@
                 }
             } catch (error) {
                 document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
-                document.getElementById('quiz-question').innerText = "Konnte keine Verbindung zur API aufbauen.";
+                document.getElementById('quiz-question').innerText = "Es konnte keine sichere Verbindung zur IKAROS-API hergestellt werden.";
             }
         }
 
         function savePassword() {
             const inputPw = document.getElementById('team-password').value;
+            if(!inputPw.trim()) return;
             savedPassword = inputPw;
             localStorage.setItem('team_quiz_pw', inputPw);
             loadCurrentQuestion();
         }
 
         async function submitAnswer() {
-            // Holt dynamisch den Wert des ausgewählten Radio-Buttons
             const selectedRadio = document.querySelector('input[name="colleague"]:checked');
             const name = selectedRadio ? selectedRadio.value : '';
             const answer = document.getElementById('answer').value;
@@ -119,6 +121,12 @@
 
             if (!name) {
                 resultMsg.innerText = "Bitte wähle zuerst aus, wer das Quiz bearbeitet.";
+                resultMsg.className = "status-msg error";
+                return;
+            }
+
+            if (!answer.trim()) {
+                resultMsg.innerText = "Bitte trage zuerst deine Lösung ein.";
                 resultMsg.className = "status-msg error";
                 return;
             }
@@ -138,16 +146,18 @@
                 if (response.ok) {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg success";
+                    document.getElementById('answer').value = ""; // Eingabefeld leeren bei Erfolg
                 } else {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg error";
                 }
             } catch (error) {
-                resultMsg.innerText = "Fehler bei der Übertragung.";
+                resultMsg.innerText = "Fehler bei der Übertragung der Antwort.";
                 resultMsg.className = "status-msg error";
             }
         }
 
+        // Direkt beim Aufruf starten
         loadCurrentQuestion();
     </script>
 </body>
