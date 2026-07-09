@@ -17,7 +17,9 @@ function getFormattedDate() {
 
 // Lädt die Quiz-Datenbank relativ zur Vercel-Serverless-Umgebung
 function getQuizData() {
-    const filePath = path.join(process.cwd(), 'quiz-data.json');
+    // Da die Datei jetzt im selben Ordner wie submit.js liegt,
+    // liest Node.js sie direkt über __dirname aus.
+    const filePath = path.join(__dirname, 'quiz-data.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(fileContents);
 }
