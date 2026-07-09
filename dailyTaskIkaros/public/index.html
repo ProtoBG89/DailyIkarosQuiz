@@ -32,10 +32,25 @@
                 <p id="quiz-question">Einen Moment...</p>
             </div>
 
-            <div class="input-group">
-                <label for="username"><strong>Dein Name:</strong></label>
-                <input type="text" id="username" placeholder="Vorname Nachname">
-            </div>
+            <div class="user-selection-container">
+  <label class="section-label">Wer bearbeitet das Quiz gerade?</label>
+  <div class="radio-group">
+    <label class="radio-label">
+      <input type="radio" name="colleague" value="Kollege 1" required>
+      <span class="custom-radio"></span> Farhat
+    </label>
+    
+    <label class="radio-label">
+      <input type="radio" name="colleague" value="Kollege 2">
+      <span class="custom-radio"></span> Silviu
+    </label>
+    
+    <label class="radio-label">
+      <input type="radio" name="colleague" value="Kollege 3">
+      <span class="custom-radio"></span> Jannik
+    </label>
+  </div>
+</div>
 
             <div class="input-group">
                 <label for="answer"><strong>Deine Antwort:</strong></label>
