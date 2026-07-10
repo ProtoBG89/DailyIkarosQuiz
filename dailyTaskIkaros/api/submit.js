@@ -23,8 +23,8 @@ function getQuizData() {
 }
 
 // Nutzt die exakten Umgebungsvariablen aus der Vercel-Supabase-Integration
-const SUPABASE_URL = process.env.STORAGE_URL;
-const SUPABASE_KEY = process.env.STORAGE_ANON_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
 
 // Hilfsfunktion zur internen Kommunikation mit Supabase über die REST-API
 async function supabaseRequest(endpoint, method = 'GET', body = null) {
