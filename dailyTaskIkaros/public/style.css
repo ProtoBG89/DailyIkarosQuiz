@@ -15,15 +15,18 @@ body {
 
 .hidden { display: none !important; }
 
-/* --- QUIZ WRAPPER CONTAINER --- */
+/* --- QUIZ WRAPPER CONTAINER (FLEXIBEL OPTIMIERT) --- */
 .quiz-container {
     background: #ffffff;
     padding: 40px;
-    border-radius: 20px;
+    border-radius: 24px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
     width: 100%;
-    max-width: 580px;
+    max-width: 650px; /* Leicht erhöht für die breiteren Bild-Karten */
+    height: auto;     /* Die Karte wächst nun elastisch nach unten mit */
+    min-height: 100%;
     box-sizing: border-box;
+    margin: 20px auto;
 }
 
 /* --- APPLE TYPOGRAPHY HEADER --- */
@@ -45,6 +48,18 @@ body {
     color: #86868b;
     margin: 0;
     font-weight: 400;
+}
+
+/* --- LIVE SCOREBOARD BANNER --- */
+/* (Falls du das obere Highscore-Banner ansprichst – hier ist das passende Styling) */
+.score-banner {
+    display: flex;
+    justify-content: space-around;
+    background: #f5f5f7;
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 25px;
+    text-align: center;
 }
 
 /* --- QUESTION DISPLAY BOX --- */
@@ -91,7 +106,7 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: #86868b;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 input[type="text"],
@@ -139,23 +154,24 @@ input:focus {
     transform: scale(0.99);
 }
 
-/* --- APPLE USER SELECTION CARDS --- */
+/* --- APPLE USER SELECTION CARDS (AVATAR REFRESH) --- */
 .apple-user-container {
-    margin-bottom: 25px;
+    margin-bottom: 30px; /* Erhöhter Abstand zum Antwortfeld nach unten */
 }
 
 .apple-selector {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .apple-card {
     flex: 1;
+    min-width: 0; /* Verhindert das Aufblähen der Karten auf kleinen Screens */
     cursor: pointer;
 }
 
 .apple-card input[type="radio"] {
-    display: none; /* Blendet die Standard-Kreise komplett aus */
+    display: none;
 }
 
 .apple-card .card-content {
@@ -163,26 +179,33 @@ input:focus {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 16px 10px;
+    padding: 14px 10px;
     background: #ffffff;
     border: 1px solid #d2d2d7;
-    border-radius: 12px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
 }
 
-.apple-card .avatar {
-    font-size: 20px;
+/* Avatar Bild-Styling für quadratische Grafiken */
+.avatar-img {
+    width: 100%;
+    max-width: 150px; /* Skaliert die Grafiken auf eine harmonische, einheitliche Größe */
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 12px; /* Schicke, abgerundete Ecken passend zum Apple-Stil */
+    display: block;
+    margin: 0 auto 10px auto;
 }
 
 .apple-card .name {
     font-size: 13px;
     font-weight: 500;
     color: #1d1d1f;
+    text-align: center;
 }
 
-/* Hover & Checked Animations */
+/* Hover & Checked Zustände */
 .apple-card:hover .card-content {
     border-color: #86868b;
     background-color: #fafafa;
@@ -190,7 +213,7 @@ input:focus {
 
 .apple-card input[type="radio"]:checked + .card-content {
     border-color: #0071e3;
-    background-color: rgba(0, 113, 227, 0.04);
+    background-color: rgba(0, 113, 227, 0.03);
     box-shadow: 0 0 0 1px #0071e3;
 }
 
@@ -239,7 +262,7 @@ input:focus {
     font-size: 14px;
     font-weight: 500;
     margin-top: 18px;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
 }
 
@@ -248,11 +271,16 @@ input:focus {
 .status-msg.error { color: #ff3b30; background: rgba(255, 59, 48, 0.08); }
 
 /* Mobile View Responsive Wrap */
-@media (max-width: 480px) {
+@media (max-width: 520px) {
     .apple-selector {
         flex-direction: column;
+        gap: 14px;
+    }
+    .avatar-img {
+        max-width: 120px; /* Etwas kompakter auf Handys */
     }
     .quiz-container {
         padding: 24px;
+        margin: 10px auto;
     }
 }
