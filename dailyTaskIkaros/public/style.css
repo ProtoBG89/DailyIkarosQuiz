@@ -190,7 +190,7 @@ input:focus {
 /* Avatar Bild-Styling für quadratische Grafiken */
 .avatar-img {
     width: 100%;
-    max-width: 150px; /* Skaliert die Grafiken auf eine harmonische, einheitliche Größe */
+    max-width: 300px; /* Skaliert die Grafiken auf eine harmonische, einheitliche Größe */
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 12px; /* Schicke, abgerundete Ecken passend zum Apple-Stil */
