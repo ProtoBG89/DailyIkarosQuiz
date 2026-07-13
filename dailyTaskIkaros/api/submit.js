@@ -9,8 +9,8 @@ function getFormattedDate() {
     const options = { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' };
     const parts = new Intl.DateTimeFormat('de-DE', options).formatToParts(d);
     const year = parts.find(p => p.type === 'year').value;
-    const month = parts.find(p => p.type === 'month').value;
-    const day = parts.find(p => p.type === 'day').value;
+    const month = parts.find(p => p.month === 'month' || p.type === 'month').value;
+    const day = parts.find(p => p.day === 'day' || p.type === 'day').value;
     return `${year}-${month}-${day}`;
 }
 
@@ -85,9 +85,21 @@ export default async function handler(req, res) {
             const users = await supabaseRequest('quiz_scores?select=name,points');
             const scoresObj = {};
             if (Array.isArray(users)) users.forEach(u => { scoresObj[u.name] = u.points; });
-            return res.status(200).json({ title: todaysQuiz.title, question: todaysQuiz.question, scores: scoresObj });
+            
+            // HINZUFÜGUNG: solution mitsenden, damit das Frontend live den Fortschritt berechnen kann
+            return res.status(200).json({ 
+                title: todaysQuiz.title, 
+                question: todaysQuiz.question, 
+                solution: todaysQuiz.solution,
+                scores: scoresObj 
+            });
         } catch (dbError) {
-            return res.status(200).json({ title: todaysQuiz.title, question: todaysQuiz.question, scores: {} });
+            return res.status(200).json({ 
+                title: todaysQuiz.title, 
+                question: todaysQuiz.question, 
+                solution: todaysQuiz.solution,
+                scores: {} 
+            });
         }
     }
 
@@ -98,12 +110,11 @@ export default async function handler(req, res) {
         const cleanAnswer = answer.trim();
         const expectedSolution = todaysQuiz.solution.trim();
         
-        // --- Fuzzy Logic Prüfung ---
         const distance = getLevenshteinDistance(cleanAnswer, expectedSolution);
         const maxLength = Math.max(cleanAnswer.length, expectedSolution.length);
-        const similarity = (1 - distance / maxLength) * 100;
+        const similarity = maxLength === 0 ? 0 : (1 - distance / maxLength) * 100;
 
-        if (similarity >= 90) { // 90% Ähnlichkeitsschwelle
+        if (similarity >= 90) {
             const resend = new Resend(process.env.RESEND_API_KEY);
             
             try {
@@ -117,7 +128,6 @@ export default async function handler(req, res) {
                 const nextPoints = (user ? user.points : 0) + 1;
                 await supabaseRequest(`quiz_scores?name=eq.${name}`, 'PATCH', { points: nextPoints, last_solved: todayStr });
 
-                // Erfolgs-Mail
                 try {
                     await resend.emails.send({
                         from: 'Quiz-Bot <onboarding@resend.dev>',
