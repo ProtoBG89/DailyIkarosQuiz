@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IKAROS Daily Quiz</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -55,41 +56,21 @@
             <div class="apple-user-container">
                 <span class="apple-label">Wer bearbeitet das Quiz gerade?</span>
                 <div class="apple-selector">
-                    <label class="apple-card">
-                        <input type="radio" name="colleague" value="Farhat" required>
-                        <div class="card-content">
-                            <img src="/images/kollege1.png" alt="Farhat" class="avatar-img">
-                            <span class="name">Farhat</span>
-                        </div>
-                    </label>
-                    
-                    <label class="apple-card">
-                        <input type="radio" name="colleague" value="Silviu">
-                        <div class="card-content">
-                            <img src="/images/kollege2.png" alt="Silviu" class="avatar-img">
-                            <span class="name">Silviu</span>
-                        </div>
-                    </label>
-                    
-                    <label class="apple-card">
-                        <input type="radio" name="colleague" value="Jannik">
-                        <div class="card-content">
-                            <img src="/images/kollege3.png" alt="Jannik" class="avatar-img">
-                            <span class="name">Jannik</span>
-                        </div>
-                    </label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Farhat" required><div class="card-content"><span class="name">Farhat</span></div></label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Silviu"><div class="card-content"><span class="name">Silviu</span></div></label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Jannik"><div class="card-content"><span class="name">Jannik</span></div></label>
                 </div>
             </div>
 
-           <div class="input-group">
+            <div class="input-group">
                 <label class="apple-label">Deine Lösung (JS-Code)</label>
                 <div id="code-editor" class="code-editor" contenteditable="true" spellcheck="false" oninput="calculateFuzzyScore()"></div>
-    
+                
                 <div class="progress-container">
                     <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
                 </div>
                 <span id="score-text" style="font-size: 11px; color: #86868b;">Ähnlichkeit: 0%</span>
-           </div>
+            </div>
 
             <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
                 <span class="btn-text">Antwort abgeben</span>
@@ -101,110 +82,71 @@
 
     <script>
         let savedPassword = localStorage.getItem('team_quiz_pw') || '';
+        let currentSolution = "";
+
+        function getLevenshteinDistance(a, b) {
+            const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+            for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= a.length; i++) {
+                for (let j = 1; j <= b.length; j++) {
+                    matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+                }
+            }
+            return matrix[a.length][b.length];
+        }
+
+        function calculateFuzzyScore() {
+            const userInput = document.getElementById('code-editor').innerText.trim();
+            const progressBar = document.getElementById('progress-bar');
+            const scoreText = document.getElementById('score-text');
+            
+            if (!currentSolution) return;
+            const distance = getLevenshteinDistance(userInput, currentSolution);
+            const maxLength = Math.max(userInput.length, currentSolution.length);
+            const similarity = maxLength === 0 ? 0 : Math.round((1 - distance / maxLength) * 100);
+
+            progressBar.style.width = similarity + '%';
+            progressBar.style.backgroundColor = similarity >= 90 ? '#34c759' : '#0071e3';
+            scoreText.innerText = `Ähnlichkeit: ${similarity}%`;
+        }
 
         async function loadCurrentQuestion() {
             if (!savedPassword) {
                 document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('quiz-section').classList.add('hidden');
                 return;
             }
-
-            try {
-                const response = await fetch('/api/submit', {
-                    headers: { 'x-quiz-password': savedPassword }
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('login-section').classList.add('hidden');
-                    document.getElementById('quiz-section').classList.remove('hidden');
-                    document.getElementById('quiz-title').innerText = data.title;
-                    document.getElementById('quiz-question').innerHTML = data.question;
-
-                    if (data.scores) {
-                        document.getElementById('score-Farhat').innerText = data.scores["Farhat"] !== undefined ? data.scores["Farhat"] : 0;
-                        document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
-                        document.getElementById('score-Jannik').innerText = data.scores["Jannik"] !== undefined ? data.scores["Jannik"] : 0;
-                    }
-                } else {
-                    localStorage.removeItem('team_quiz_pw');
-                    savedPassword = '';
-                    document.getElementById('login-error').innerText = data.message;
-                    document.getElementById('login-section').classList.remove('hidden');
-                    document.getElementById('quiz-section').classList.add('hidden');
-                }
-            } catch (error) {
-                document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
-                document.getElementById('quiz-question').innerText = "Es konnte keine sichere Verbindung zur IKAROS-API hergestellt werden.";
+            const response = await fetch('/api/submit', { headers: { 'x-quiz-password': savedPassword } });
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('quiz-section').classList.remove('hidden');
+                document.getElementById('quiz-title').innerText = data.title;
+                document.getElementById('quiz-question').innerHTML = data.question;
+                currentSolution = data.solution || ""; // Lösung vom Backend holen
             }
-        }
-
-        function savePassword() {
-            const inputPw = document.getElementById('team-password').value;
-            if(!inputPw.trim()) return;
-            savedPassword = inputPw;
-            localStorage.setItem('team_quiz_pw', inputPw);
-            loadCurrentQuestion();
         }
 
         async function submitAnswer() {
-            const selectedRadio = document.querySelector('input[name="colleague"]:checked');
-            const name = selectedRadio ? selectedRadio.value : '';
-            const answer = document.getElementById('answer').value;
+            const name = document.querySelector('input[name="colleague"]:checked')?.value;
+            const answer = document.getElementById('code-editor').innerText;
             const resultMsg = document.getElementById('result-message');
-            const submitBtn = document.getElementById('submit-btn');
-            const btnText = submitBtn.querySelector('.btn-text');
-            const spinner = submitBtn.querySelector('.spinner');
 
-            if (!name) {
-                resultMsg.innerText = "Bitte wähle zuerst aus, wer das Quiz bearbeitet.";
-                resultMsg.className = "status-msg error";
-                return;
-            }
+            if (!name || !answer.trim()) return resultMsg.innerText = "Bitte Name und Lösung eingeben.";
 
-            if (!answer.trim()) {
-                resultMsg.innerText = "Bitte trage zuerst deine Lösung ein.";
-                resultMsg.className = "status-msg error";
-                return;
-            }
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-quiz-password': savedPassword },
+                body: JSON.stringify({ name, answer })
+            });
 
-            // Loading State aktivieren
-            submitBtn.disabled = true;
-            btnText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            resultMsg.innerText = "Prüfe Antwort...";
-            resultMsg.className = "status-msg processing";
+            const data = await response.json();
+            resultMsg.innerText = data.message;
+            if (response.ok) document.getElementById('code-editor').innerText = "";
+        }
 
-            try {
-                const response = await fetch('/api/submit', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-quiz-password': savedPassword 
-                    },
-                    body: JSON.stringify({ name, answer })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    resultMsg.innerText = data.message;
-                    resultMsg.className = "status-msg success";
-                    document.getElementById('answer').value = ""; 
-                    setTimeout(loadCurrentQuestion, 1500); 
-                } else {
-                    resultMsg.innerText = data.message;
-                    resultMsg.className = "status-msg error";
-                }
-            } catch (error) {
-                resultMsg.innerText = "Fehler bei der Übertragung der Antwort.";
-                resultMsg.className = "status-msg error";
-            } finally {
-                // Loading State zurücksetzen
-                submitBtn.disabled = false;
-                btnText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
+        function savePassword() {
+            savedPassword = document.getElementById('team-password').value;
+            localStorage.setItem('team_quiz_pw', savedPassword);
+            loadCurrentQuestion();
         }
 
         loadCurrentQuestion();
