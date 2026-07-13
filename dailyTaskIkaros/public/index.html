@@ -81,10 +81,15 @@
                 </div>
             </div>
 
-            <div class="input-group">
-                <label for="answer" class="apple-label">Deine Antwort</label>
-                <input type="text" id="answer" placeholder="Dein Lösungscode hier...">
-            </div>
+           <div class="input-group">
+                <label class="apple-label">Deine Lösung (JS-Code)</label>
+                <div id="code-editor" class="code-editor" contenteditable="true" spellcheck="false" oninput="calculateFuzzyScore()"></div>
+    
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                </div>
+                <span id="score-text" style="font-size: 11px; color: #86868b;">Ähnlichkeit: 0%</span>
+           </div>
 
             <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
                 <span class="btn-text">Antwort abgeben</span>
@@ -204,5 +209,6 @@
 
         loadCurrentQuestion();
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 </body>
 </html>
