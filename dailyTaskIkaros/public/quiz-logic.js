@@ -142,6 +142,24 @@
         });
     }
 
+    function triggerHackingAlarm() {
+        const container = document.querySelector('.quiz-container');
+        if (!container) return;
+
+        container.classList.remove('hacking-alarm');
+        void container.offsetWidth;
+        container.classList.add('hacking-alarm');
+
+        function onAlarmEnd(event) {
+            if (event.animationName === 'hacking-shake') {
+                container.classList.remove('hacking-alarm');
+                container.removeEventListener('animationend', onAlarmEnd);
+            }
+        }
+
+        container.addEventListener('animationend', onAlarmEnd);
+    }
+
     window.QuizLogic = {
         getLevenshteinDistance,
         calculateScore,
@@ -149,6 +167,7 @@
         animateCounter,
         updateHighscores,
         initAvatarInteraction,
+        triggerHackingAlarm,
         init,
         reset
     };

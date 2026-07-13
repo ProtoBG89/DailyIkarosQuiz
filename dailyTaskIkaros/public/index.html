@@ -5,16 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IKAROS Daily Quiz</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function () {
+            const theme = localStorage.getItem('quiz_theme');
+            if (theme) document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 <body>
 
     <div class="quiz-container">
         <header class="apple-header">
-            <h1>Das Daily Quiz</h1>
-            <p class="subtitle">IKAROS Custom Code Challenge</p>
+            <div class="header-row">
+                <div class="header-titles">
+                    <h1>Das Daily Quiz</h1>
+                    <p class="subtitle">IKAROS Custom Code Challenge</p>
+                </div>
+                <label class="theme-toggle" aria-label="Dark Mode umschalten">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="toggle-track">
+                        <span class="toggle-thumb"></span>
+                    </span>
+                    <span class="toggle-label">Dark</span>
+                </label>
+            </div>
         </header>
 
-        <div id="login-section" class="login-box hidden">
+        <div id="login-section" class="login-box hidden fade-in">
             <div class="lock-icon">🔒</div>
             <h3>Interner IT-Bereich</h3>
             <p>Bitte gib das Team-Passwort ein, um die heutige Challenge freizuschalten:</p>
@@ -24,8 +41,8 @@
         </div>
 
         <div id="quiz-section" class="hidden">
-            
-            <div class="apple-user-container">
+
+            <div class="apple-user-container fade-in">
                 <div class="label-row">
                     <span class="apple-label">🏆 Team Highscores</span>
                     <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
@@ -46,13 +63,13 @@
                 </div>
             </div>
 
-            <div class="question-box">
+            <div class="question-box fade-in">
                 <span class="pill-tag">Heutige Challenge</span>
                 <h2 id="quiz-title">⏳ Challenge wird geladen...</h2>
                 <div id="quiz-question" class="question-text">Einen Moment...</div>
             </div>
 
-            <div class="apple-user-container">
+            <div class="apple-user-container fade-in">
                 <span class="apple-label">Wer bearbeitet das Quiz gerade?</span>
                 <div class="apple-selector">
                     <label class="apple-card">
@@ -62,7 +79,7 @@
                             <span class="name">Farhat</span>
                         </div>
                     </label>
-                    
+
                     <label class="apple-card">
                         <input type="radio" name="colleague" value="Silviu">
                         <div class="card-content">
@@ -70,7 +87,7 @@
                             <span class="name">Silviu</span>
                         </div>
                     </label>
-                    
+
                     <label class="apple-card">
                         <input type="radio" name="colleague" value="Jannik">
                         <div class="card-content">
@@ -81,7 +98,7 @@
                 </div>
             </div>
 
-            <div class="input-group">
+            <div class="input-group fade-in">
                 <label for="answer" class="apple-label">Deine Antwort</label>
                 <div class="code-editor">
                     <div class="code-editor-inner" id="code-editor-inner">
@@ -98,7 +115,7 @@
                 </div>
             </div>
 
-            <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
+            <button class="apple-btn fade-in" id="submit-btn" onclick="submitAnswer()">
                 <span class="btn-text">Antwort abgeben</span>
                 <span class="spinner hidden"></span>
             </button>
@@ -110,117 +127,6 @@
     <script src="vendor/prism/prism-javascript.min.js"></script>
     <script src="code-editor.js"></script>
     <script src="quiz-logic.js"></script>
-    <script>
-        let savedPassword = localStorage.getItem('team_quiz_pw') || '';
-
-        async function loadCurrentQuestion() {
-            if (!savedPassword) {
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('quiz-section').classList.add('hidden');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/submit', {
-                    headers: { 'x-quiz-password': savedPassword }
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('login-section').classList.add('hidden');
-                    document.getElementById('quiz-section').classList.remove('hidden');
-                    document.getElementById('quiz-title').innerText = data.title;
-                    document.getElementById('quiz-question').innerHTML = data.question;
-
-                    QuizLogic.updateHighscores(data.scores || {});
-
-                    if (data.solution) {
-                        QuizLogic.init(data.solution);
-                    } else {
-                        QuizLogic.reset();
-                    }
-                } else {
-                    localStorage.removeItem('team_quiz_pw');
-                    savedPassword = '';
-                    document.getElementById('login-error').innerText = data.message;
-                    document.getElementById('login-section').classList.remove('hidden');
-                    document.getElementById('quiz-section').classList.add('hidden');
-                }
-            } catch (error) {
-                document.getElementById('quiz-title').innerText = "🛑 Verbindungsfehler";
-                document.getElementById('quiz-question').innerText = "Es konnte keine sichere Verbindung zur IKAROS-API hergestellt werden.";
-            }
-        }
-
-        function savePassword() {
-            const inputPw = document.getElementById('team-password').value;
-            if(!inputPw.trim()) return;
-            savedPassword = inputPw;
-            localStorage.setItem('team_quiz_pw', inputPw);
-            loadCurrentQuestion();
-        }
-
-        async function submitAnswer() {
-            const selectedRadio = document.querySelector('input[name="colleague"]:checked');
-            const name = selectedRadio ? selectedRadio.value : '';
-            const answer = CodeEditor.getValue();
-            const resultMsg = document.getElementById('result-message');
-            const submitBtn = document.getElementById('submit-btn');
-            const btnText = submitBtn.querySelector('.btn-text');
-            const spinner = submitBtn.querySelector('.spinner');
-
-            if (!name) {
-                resultMsg.innerText = "Bitte wähle zuerst aus, wer das Quiz bearbeitet.";
-                resultMsg.className = "status-msg error";
-                return;
-            }
-
-            if (!answer) {
-                resultMsg.innerText = "Bitte trage zuerst deine Lösung ein.";
-                resultMsg.className = "status-msg error";
-                return;
-            }
-
-            // Loading State aktivieren
-            submitBtn.disabled = true;
-            btnText.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            resultMsg.innerText = "Prüfe Antwort...";
-            resultMsg.className = "status-msg processing";
-
-            try {
-                const response = await fetch('/api/submit', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-quiz-password': savedPassword 
-                    },
-                    body: JSON.stringify({ name, answer })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    resultMsg.innerText = data.message;
-                    resultMsg.className = "status-msg success";
-                    CodeEditor.clear();
-                    setTimeout(loadCurrentQuestion, 1500); 
-                } else {
-                    resultMsg.innerText = data.message;
-                    resultMsg.className = "status-msg error";
-                }
-            } catch (error) {
-                resultMsg.innerText = "Fehler bei der Übertragung der Antwort.";
-                resultMsg.className = "status-msg error";
-            } finally {
-                // Loading State zurücksetzen
-                submitBtn.disabled = false;
-                btnText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
-        }
-
-        loadCurrentQuestion();
-    </script>
+    <script src="main.js"></script>
 </body>
 </html>
