@@ -131,6 +131,9 @@
             const data = await response.json();
 
             if (response.ok) {
+                if (/hacking/i.test(data.message || '')) {
+                    QuizLogic.triggerHackingAlarm();
+                }
                 resultMsg.innerText = data.message;
                 resultMsg.className = 'status-msg success';
                 CodeEditor.clear();
