@@ -72,11 +72,90 @@
         updateProgressBar(0);
     }
 
+    const activeCounters = new Map();
+
+    function animateCounter(element, targetValue, duration = 600) {
+        if (!element) return;
+
+        const target = Number(targetValue) || 0;
+        const existingFrame = activeCounters.get(element);
+        if (existingFrame) cancelAnimationFrame(existingFrame);
+
+        const startValue = Number(element.textContent) || 0;
+        if (startValue === target) {
+            element.textContent = target;
+            return;
+        }
+
+        const startTime = performance.now();
+
+        function step(now) {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(startValue + (target - startValue) * eased);
+            element.textContent = current;
+
+            if (progress < 1) {
+                activeCounters.set(element, requestAnimationFrame(step));
+            } else {
+                element.textContent = target;
+                activeCounters.delete(element);
+            }
+        }
+
+        activeCounters.set(element, requestAnimationFrame(step));
+    }
+
+    function updateHighscores(scores) {
+        ['Farhat', 'Silviu', 'Jannik'].forEach(name => {
+            const el = document.getElementById('score-' + name);
+            const value = scores && scores[name] !== undefined ? scores[name] : 0;
+            animateCounter(el, value);
+        });
+    }
+
+    function handleAvatarClick(event) {
+        const avatar = event.currentTarget.querySelector('.avatar-img');
+        if (!avatar) return;
+
+        avatar.classList.remove('greet-bounce');
+        void avatar.offsetWidth;
+        avatar.classList.add('greet-bounce');
+    }
+
+    function handleAvatarAnimationEnd(event) {
+        if (event.animationName === 'greet-bounce') {
+            event.target.classList.remove('greet-bounce');
+        }
+    }
+
+    function initAvatarInteraction() {
+        document.querySelectorAll('.apple-card').forEach(card => {
+            card.removeEventListener('click', handleAvatarClick);
+            card.addEventListener('click', handleAvatarClick);
+
+            const avatar = card.querySelector('.avatar-img');
+            if (avatar) {
+                avatar.removeEventListener('animationend', handleAvatarAnimationEnd);
+                avatar.addEventListener('animationend', handleAvatarAnimationEnd);
+            }
+        });
+    }
+
     window.QuizLogic = {
         getLevenshteinDistance,
         calculateScore,
         updateProgressBar,
+        animateCounter,
+        updateHighscores,
+        initAvatarInteraction,
         init,
         reset
     };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAvatarInteraction);
+    } else {
+        initAvatarInteraction();
+    }
 })();

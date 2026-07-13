@@ -132,11 +132,7 @@
                     document.getElementById('quiz-title').innerText = data.title;
                     document.getElementById('quiz-question').innerHTML = data.question;
 
-                    if (data.scores) {
-                        document.getElementById('score-Farhat').innerText = data.scores["Farhat"] !== undefined ? data.scores["Farhat"] : 0;
-                        document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
-                        document.getElementById('score-Jannik').innerText = data.scores["Jannik"] !== undefined ? data.scores["Jannik"] : 0;
-                    }
+                    QuizLogic.updateHighscores(data.scores || {});
 
                     if (data.solution) {
                         QuizLogic.init(data.solution);
