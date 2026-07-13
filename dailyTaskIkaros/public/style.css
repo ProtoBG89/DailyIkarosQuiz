@@ -198,57 +198,40 @@ input:focus {
 }
 
 .code-editor-inner {
-    position: relative;
+    display: grid;
+    grid-template-areas: "editor";
     min-height: 120px;
 }
 
-/* Shared typography — must match exactly for caret alignment */
 .code-editor-highlight,
-.code-editor-highlight code,
-.code-editor-input {
+.code-editor-input,
+.code-editor-placeholder {
+    grid-area: editor;
     margin: 0;
     padding: 14px 16px;
+    border: 0;
     font-family: Consolas, Monaco, "Courier New", monospace;
     font-size: 14px;
     font-weight: 400;
     font-style: normal;
     line-height: 21px;
-    letter-spacing: 0;
-    word-spacing: 0;
+    letter-spacing: normal;
+    word-spacing: normal;
     tab-size: 2;
     -moz-tab-size: 2;
     white-space: pre-wrap;
     word-wrap: break-word;
+    overflow-wrap: break-word;
     word-break: normal;
     box-sizing: border-box;
     -webkit-font-smoothing: antialiased;
 }
 
 .code-editor-highlight {
-    position: absolute;
-    inset: 0;
-    padding: 0;
     pointer-events: none;
-    overflow: visible;
+    user-select: none;
+    color: #ccc;
     background: transparent;
-}
-
-.code-editor-highlight code {
-    display: block;
-    min-height: 100%;
-    background: transparent !important;
-    text-shadow: none !important;
-}
-
-/* Override Prism defaults inside the editor */
-.code-editor-highlight code[class*="language-"] {
-    font-family: Consolas, Monaco, "Courier New", monospace !important;
-    font-size: 14px !important;
-    line-height: 21px !important;
-    white-space: pre-wrap !important;
-    word-wrap: break-word !important;
-    tab-size: 2 !important;
-    -moz-tab-size: 2 !important;
 }
 
 .code-editor-input {
@@ -256,26 +239,29 @@ input:focus {
     z-index: 1;
     min-height: 120px;
     width: 100%;
+    display: block;
     outline: none;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+    color: rgba(0, 0, 0, 0);
     caret-color: #f8f8f2;
     background: transparent;
-    border: none;
+    resize: none;
+    overflow: hidden;
 }
 
-.code-editor-input::selection,
-.code-editor-input *::selection {
+.code-editor-input::selection {
     background: rgba(0, 113, 227, 0.35);
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+    color: rgba(0, 0, 0, 0);
 }
 
-.code-editor-input:empty::before {
-    content: attr(data-placeholder);
-    color: #75715e;
-    -webkit-text-fill-color: #75715e;
+.code-editor-placeholder {
+    z-index: 0;
     pointer-events: none;
+    user-select: none;
+    color: #75715e;
+}
+
+.code-editor-inner:not(.is-empty) .code-editor-placeholder {
+    display: none;
 }
 
 /* --- PREMIUM ACTION BUTTONS & SPINNER --- */

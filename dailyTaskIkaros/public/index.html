@@ -85,9 +85,10 @@
             <div class="input-group">
                 <label for="answer" class="apple-label">Deine Antwort</label>
                 <div class="code-editor">
-                    <div class="code-editor-inner">
-                        <pre class="code-editor-highlight" aria-hidden="true"><code id="answer-highlight" class="language-javascript"></code></pre>
-                        <div id="answer" class="code-editor-input" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" data-placeholder="Dein Lösungscode hier..."></div>
+                    <div class="code-editor-inner" id="code-editor-inner">
+                        <div id="answer-highlight" class="code-editor-highlight" aria-hidden="true"></div>
+                        <div id="answer" class="code-editor-input" contenteditable="plaintext-only" role="textbox" aria-multiline="true" spellcheck="false"></div>
+                        <div class="code-editor-placeholder" aria-hidden="true">Dein Lösungscode hier...</div>
                     </div>
                 </div>
             </div>

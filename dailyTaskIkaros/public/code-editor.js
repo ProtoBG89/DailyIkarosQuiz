@@ -1,76 +1,39 @@
 (function () {
     const EDITOR_ID = 'answer';
     const HIGHLIGHT_ID = 'answer-highlight';
+    const INNER_ID = 'code-editor-inner';
     const LANGUAGE = 'javascript';
 
     let editor = null;
     let highlight = null;
+    let editorInner = null;
 
-    function saveCaretOffset(container) {
-        const selection = window.getSelection();
-        if (!selection.rangeCount || !container.contains(selection.anchorNode)) {
-            return null;
-        }
-
-        const range = selection.getRangeAt(0);
-        const preCaretRange = range.cloneRange();
-        preCaretRange.selectNodeContents(container);
-        preCaretRange.setEnd(range.endContainer, range.endOffset);
-        return preCaretRange.toString().length;
+    function updateEmptyState() {
+        if (!editorInner) return;
+        editorInner.classList.toggle('is-empty', !editor.textContent.length);
     }
 
-    function restoreCaretOffset(container, offset) {
-        if (offset === null) return;
+    function normalizeEditorContent() {
+        const text = editor.textContent.replace(/\u200B/g, '');
 
-        const selection = window.getSelection();
-        const range = document.createRange();
-        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-        let charCount = 0;
-        let currentNode = walker.nextNode();
-
-        while (currentNode) {
-            const nextCount = charCount + currentNode.length;
-            if (offset <= nextCount) {
-                range.setStart(currentNode, offset - charCount);
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                return;
-            }
-            charCount = nextCount;
-            currentNode = walker.nextNode();
+        if (editor.childNodes.length !== 1 || editor.firstChild.nodeType !== Node.TEXT_NODE) {
+            editor.textContent = text;
         }
 
-        range.selectNodeContents(container);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        updateEmptyState();
     }
 
     function updateHighlight() {
-        const code = editor.textContent || '';
-        const caretOffset = saveCaretOffset(editor);
-
         highlight.innerHTML = Prism.highlight(
-            code,
+            editor.textContent || '',
             Prism.languages[LANGUAGE],
             LANGUAGE
         );
-
-        restoreCaretOffset(editor, caretOffset);
-    }
-
-    function sanitizeEditorContent() {
-        if (editor.childNodes.length === 1 && editor.firstChild.nodeType === Node.TEXT_NODE) {
-            return;
-        }
-        const caretOffset = saveCaretOffset(editor);
-        editor.textContent = editor.textContent;
-        restoreCaretOffset(editor, caretOffset);
+        updateEmptyState();
     }
 
     function handleInput() {
-        sanitizeEditorContent();
+        normalizeEditorContent();
         updateHighlight();
     }
 
@@ -80,16 +43,33 @@
         document.execCommand('insertText', false, text);
     }
 
+    function handleKeydown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.execCommand('insertText', false, '\n');
+        }
+    }
+
+    function handleFocus() {
+        if (!editor.textContent.length) {
+            editor.textContent = '';
+        }
+    }
+
     function initCodeEditor() {
         editor = document.getElementById(EDITOR_ID);
         highlight = document.getElementById(HIGHLIGHT_ID);
+        editorInner = document.getElementById(INNER_ID);
 
         if (!editor || !highlight || typeof Prism === 'undefined') return;
 
         editor.addEventListener('input', handleInput);
         editor.addEventListener('paste', handlePaste);
+        editor.addEventListener('keydown', handleKeydown);
+        editor.addEventListener('focus', handleFocus);
 
         updateHighlight();
+        updateEmptyState();
     }
 
     window.CodeEditor = {
