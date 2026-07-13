@@ -26,19 +26,22 @@
         <div id="quiz-section" class="hidden">
             
             <div class="apple-user-container">
-                <span class="apple-label">🏆 Team Highscores (Live)</span>
-                <div class="apple-selector" style="background: #f5f5f7; padding: 15px; border-radius: 12px; gap: 20px; justify-content: space-around; margin-top: 6px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Farhat">0</div>
-                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Farhat</div>
+                <div class="label-row">
+                    <span class="apple-label">🏆 Team Highscores</span>
+                    <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
+                </div>
+                <div class="apple-selector score-banner-box">
+                    <div class="score-card">
+                        <div class="score-value" id="score-Farhat">0</div>
+                        <div class="score-name">Farhat</div>
                     </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Silviu">0</div>
-                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Silviu</div>
+                    <div class="score-card">
+                        <div class="score-value" id="score-Silviu">0</div>
+                        <div class="score-name">Silviu</div>
                     </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 22px; font-weight: 700; color: #1d1d1f;" id="score-Jannik">0</div>
-                        <div style="font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px;">Jannik</div>
+                    <div class="score-card">
+                        <div class="score-value" id="score-Jannik">0</div>
+                        <div class="score-name">Jannik</div>
                     </div>
                 </div>
             </div>
@@ -83,7 +86,10 @@
                 <input type="text" id="answer" placeholder="Dein Lösungscode hier...">
             </div>
 
-            <button class="apple-btn" onclick="submitAnswer()">Antwort abgeben</button>
+            <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
+                <span class="btn-text">Antwort abgeben</span>
+                <span class="spinner hidden"></span>
+            </button>
             <p id="result-message"></p>
         </div>
     </div>
@@ -110,7 +116,6 @@
                     document.getElementById('quiz-title').innerText = data.title;
                     document.getElementById('quiz-question').innerHTML = data.question;
 
-                    // Live-Scores aus Supabase mappen
                     if (data.scores) {
                         document.getElementById('score-Farhat').innerText = data.scores["Farhat"] !== undefined ? data.scores["Farhat"] : 0;
                         document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
@@ -142,6 +147,9 @@
             const name = selectedRadio ? selectedRadio.value : '';
             const answer = document.getElementById('answer').value;
             const resultMsg = document.getElementById('result-message');
+            const submitBtn = document.getElementById('submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
 
             if (!name) {
                 resultMsg.innerText = "Bitte wähle zuerst aus, wer das Quiz bearbeitet.";
@@ -155,6 +163,10 @@
                 return;
             }
 
+            // Loading State aktivieren
+            submitBtn.disabled = true;
+            btnText.classList.add('hidden');
+            spinner.classList.remove('hidden');
             resultMsg.innerText = "Prüfe Antwort...";
             resultMsg.className = "status-msg processing";
 
@@ -163,7 +175,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-quiz-password': savedPassword // Passwort einheitlich als Header übergeben
+                        'x-quiz-password': savedPassword 
                     },
                     body: JSON.stringify({ name, answer })
                 });
@@ -173,9 +185,7 @@
                 if (response.ok) {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg success";
-                    document.getElementById('answer').value = ""; // Eingabefeld leeren
-                    
-                    // Aktualisiert das Leaderboard live nach 1,5 Sekunden
+                    document.getElementById('answer').value = ""; 
                     setTimeout(loadCurrentQuestion, 1500); 
                 } else {
                     resultMsg.innerText = data.message;
@@ -184,10 +194,14 @@
             } catch (error) {
                 resultMsg.innerText = "Fehler bei der Übertragung der Antwort.";
                 resultMsg.className = "status-msg error";
+            } finally {
+                // Loading State zurücksetzen
+                submitBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
             }
         }
 
-        // Direkt beim Aufruf starten
         loadCurrentQuestion();
     </script>
 </body>
