@@ -143,21 +143,39 @@
     }
 
     function triggerHackingAlarm() {
-        const container = document.querySelector('.quiz-container');
-        if (!container) return;
+        if (document.body.classList.contains('hacking-alarm-active')) return;
 
-        container.classList.remove('hacking-alarm');
-        void container.offsetWidth;
-        container.classList.add('hacking-alarm');
-
-        function onAlarmEnd(event) {
-            if (event.animationName === 'hacking-shake') {
-                container.classList.remove('hacking-alarm');
-                container.removeEventListener('animationend', onAlarmEnd);
-            }
+        let overlay = document.getElementById('hacking-alarm-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'hacking-alarm-overlay';
+            overlay.className = 'hacking-alarm-overlay';
+            overlay.innerHTML =
+                '<div class="hacking-alarm-flash"></div>' +
+                '<div class="hacking-alarm-scanlines"></div>' +
+                '<div class="hacking-alarm-banner">' +
+                    '<span class="hacking-alarm-icon">🚨</span>' +
+                    '<div class="hacking-alarm-text">' +
+                        '<strong>SICHERHEITSALARM</strong>' +
+                        '<span>UNAUTHORISIERTER ZUGRIFF ERKANNT</span>' +
+                        '<em>Alle Aktivitäten werden protokolliert…</em>' +
+                    '</div>' +
+                    '<span class="hacking-alarm-icon">🚨</span>' +
+                '</div>';
+            document.body.appendChild(overlay);
         }
 
-        container.addEventListener('animationend', onAlarmEnd);
+        document.body.classList.remove('hacking-alarm-active');
+        overlay.classList.remove('is-active');
+        void document.body.offsetWidth;
+        document.body.classList.add('hacking-alarm-active');
+        overlay.classList.add('is-active');
+
+        clearTimeout(window._hackingAlarmTimer);
+        window._hackingAlarmTimer = setTimeout(() => {
+            document.body.classList.remove('hacking-alarm-active');
+            overlay.classList.remove('is-active');
+        }, 4000);
     }
 
     window.QuizLogic = {
