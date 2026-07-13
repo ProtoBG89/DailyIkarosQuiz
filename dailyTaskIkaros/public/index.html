@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IKAROS Daily Quiz</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="vendor/prism/prism-tomorrow.min.css">
 </head>
 <body>
 
@@ -83,7 +84,12 @@
 
             <div class="input-group">
                 <label for="answer" class="apple-label">Deine Antwort</label>
-                <input type="text" id="answer" placeholder="Dein Lösungscode hier...">
+                <div class="code-editor">
+                    <div class="code-editor-inner">
+                        <pre class="code-editor-highlight" aria-hidden="true"><code id="answer-highlight" class="language-javascript"></code></pre>
+                        <div id="answer" class="code-editor-input" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" data-placeholder="Dein Lösungscode hier..."></div>
+                    </div>
+                </div>
             </div>
 
             <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
@@ -94,6 +100,9 @@
         </div>
     </div>
 
+    <script src="vendor/prism/prism.min.js"></script>
+    <script src="vendor/prism/prism-javascript.min.js"></script>
+    <script src="code-editor.js"></script>
     <script>
         let savedPassword = localStorage.getItem('team_quiz_pw') || '';
 
@@ -145,7 +154,7 @@
         async function submitAnswer() {
             const selectedRadio = document.querySelector('input[name="colleague"]:checked');
             const name = selectedRadio ? selectedRadio.value : '';
-            const answer = document.getElementById('answer').value;
+            const answer = CodeEditor.getValue();
             const resultMsg = document.getElementById('result-message');
             const submitBtn = document.getElementById('submit-btn');
             const btnText = submitBtn.querySelector('.btn-text');
@@ -157,7 +166,7 @@
                 return;
             }
 
-            if (!answer.trim()) {
+            if (!answer) {
                 resultMsg.innerText = "Bitte trage zuerst deine Lösung ein.";
                 resultMsg.className = "status-msg error";
                 return;
@@ -185,7 +194,7 @@
                 if (response.ok) {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg success";
-                    document.getElementById('answer').value = ""; 
+                    CodeEditor.clear();
                     setTimeout(loadCurrentQuestion, 1500); 
                 } else {
                     resultMsg.innerText = data.message;

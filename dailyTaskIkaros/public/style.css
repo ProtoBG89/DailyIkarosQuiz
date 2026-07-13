@@ -180,6 +180,82 @@ input:focus {
     box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
 }
 
+/* --- CODE EDITOR (PRISM + CONTENTEDITABLE) --- */
+.code-editor {
+    width: 100%;
+    max-height: 280px;
+    overflow: auto;
+    background-color: #2d2d2d;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.code-editor:focus-within {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+}
+
+.code-editor-inner {
+    position: relative;
+    min-height: 120px;
+}
+
+.code-editor-highlight,
+.code-editor-input {
+    margin: 0;
+    padding: 14px 16px;
+    font-family: "SF Mono", "Fira Code", "Consolas", "Monaco", monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    tab-size: 2;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    box-sizing: border-box;
+}
+
+.code-editor-highlight {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    background: transparent;
+}
+
+.code-editor-highlight code {
+    display: block;
+    min-height: 100%;
+    background: transparent !important;
+    text-shadow: none !important;
+}
+
+.code-editor-input {
+    position: relative;
+    z-index: 1;
+    min-height: 120px;
+    outline: none;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: #f8f8f2;
+    background: transparent;
+    border: none;
+}
+
+.code-editor-input::selection,
+.code-editor-input *::selection {
+    background: rgba(0, 113, 227, 0.35);
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
+
+.code-editor-input:empty::before {
+    content: attr(data-placeholder);
+    color: #75715e;
+    -webkit-text-fill-color: #75715e;
+    pointer-events: none;
+}
+
 /* --- PREMIUM ACTION BUTTONS & SPINNER --- */
 .apple-btn {
     width: 100%;
