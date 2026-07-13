@@ -55,7 +55,7 @@
             code,
             Prism.languages[LANGUAGE],
             LANGUAGE
-        ) + '\n';
+        );
 
         restoreCaretOffset(editor, caretOffset);
     }

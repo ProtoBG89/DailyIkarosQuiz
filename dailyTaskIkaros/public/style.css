@@ -202,22 +202,32 @@ input:focus {
     min-height: 120px;
 }
 
+/* Shared typography — must match exactly for caret alignment */
 .code-editor-highlight,
+.code-editor-highlight code,
 .code-editor-input {
     margin: 0;
     padding: 14px 16px;
-    font-family: "SF Mono", "Fira Code", "Consolas", "Monaco", monospace;
+    font-family: Consolas, Monaco, "Courier New", monospace;
     font-size: 14px;
-    line-height: 1.6;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 21px;
+    letter-spacing: 0;
+    word-spacing: 0;
     tab-size: 2;
+    -moz-tab-size: 2;
     white-space: pre-wrap;
     word-wrap: break-word;
+    word-break: normal;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
 }
 
 .code-editor-highlight {
     position: absolute;
     inset: 0;
+    padding: 0;
     pointer-events: none;
     overflow: visible;
     background: transparent;
@@ -230,10 +240,22 @@ input:focus {
     text-shadow: none !important;
 }
 
+/* Override Prism defaults inside the editor */
+.code-editor-highlight code[class*="language-"] {
+    font-family: Consolas, Monaco, "Courier New", monospace !important;
+    font-size: 14px !important;
+    line-height: 21px !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    tab-size: 2 !important;
+    -moz-tab-size: 2 !important;
+}
+
 .code-editor-input {
     position: relative;
     z-index: 1;
     min-height: 120px;
+    width: 100%;
     outline: none;
     color: transparent;
     -webkit-text-fill-color: transparent;
