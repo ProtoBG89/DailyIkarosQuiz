@@ -32,18 +32,9 @@
                     <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
                 </div>
                 <div class="apple-selector score-banner-box">
-                    <div class="score-card">
-                        <div class="score-value" id="score-Farhat">0</div>
-                        <div class="score-name">Farhat</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-value" id="score-Silviu">0</div>
-                        <div class="score-name">Silviu</div>
-                    </div>
-                    <div class="score-card">
-                        <div class="score-value" id="score-Jannik">0</div>
-                        <div class="score-name">Jannik</div>
-                    </div>
+                    <div class="score-card"><div class="score-value" id="score-Farhat">0</div><div class="score-name">Farhat</div></div>
+                    <div class="score-card"><div class="score-value" id="score-Silviu">0</div><div class="score-name">Silviu</div></div>
+                    <div class="score-card"><div class="score-value" id="score-Jannik">0</div><div class="score-name">Jannik</div></div>
                 </div>
             </div>
 
@@ -56,18 +47,17 @@
             <div class="apple-user-container">
                 <span class="apple-label">Wer bearbeitet das Quiz gerade?</span>
                 <div class="apple-selector">
-                    <label class="apple-card"><input type="radio" name="colleague" value="Farhat" required><div class="card-content"><span class="name">Farhat</span></div></label>
-                    <label class="apple-card"><input type="radio" name="colleague" value="Silviu"><div class="card-content"><span class="name">Silviu</span></div></label>
-                    <label class="apple-card"><input type="radio" name="colleague" value="Jannik"><div class="card-content"><span class="name">Jannik</span></div></label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Farhat" required><div class="card-content"><img src="images/farhat.png" alt="Farhat" class="avatar-img"><span class="name">Farhat</span></div></label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Silviu"><div class="card-content"><img src="images/silviu.png" alt="Silviu" class="avatar-img"><span class="name">Silviu</span></div></label>
+                    <label class="apple-card"><input type="radio" name="colleague" value="Jannik"><div class="card-content"><img src="images/jannik.png" alt="Jannik" class="avatar-img"><span class="name">Jannik</span></div></label>
                 </div>
             </div>
 
             <div class="input-group">
                 <label class="apple-label">Deine Lösung (JS-Code)</label>
                 <div id="code-editor" class="code-editor" contenteditable="true" spellcheck="false" oninput="calculateFuzzyScore()"></div>
-                
                 <div class="progress-container">
-                    <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                    <div id="progress-bar" class="progress-bar"></div>
                 </div>
                 <span id="score-text" style="font-size: 11px; color: #86868b;">Ähnlichkeit: 0%</span>
             </div>
@@ -76,7 +66,7 @@
                 <span class="btn-text">Antwort abgeben</span>
                 <span class="spinner hidden"></span>
             </button>
-            <p id="result-message"></p>
+            <p id="result-message" class="status-msg"></p>
         </div>
     </div>
 
@@ -99,12 +89,10 @@
             const userInput = document.getElementById('code-editor').innerText.trim();
             const progressBar = document.getElementById('progress-bar');
             const scoreText = document.getElementById('score-text');
-            
             if (!currentSolution) return;
             const distance = getLevenshteinDistance(userInput, currentSolution);
             const maxLength = Math.max(userInput.length, currentSolution.length);
             const similarity = maxLength === 0 ? 0 : Math.round((1 - distance / maxLength) * 100);
-
             progressBar.style.width = similarity + '%';
             progressBar.style.backgroundColor = similarity >= 90 ? '#34c759' : '#0071e3';
             scoreText.innerText = `Ähnlichkeit: ${similarity}%`;
@@ -115,13 +103,27 @@
                 document.getElementById('login-section').classList.remove('hidden');
                 return;
             }
-            const response = await fetch('/api/submit', { headers: { 'x-quiz-password': savedPassword } });
-            const data = await response.json();
-            if (response.ok) {
-                document.getElementById('quiz-section').classList.remove('hidden');
-                document.getElementById('quiz-title').innerText = data.title;
-                document.getElementById('quiz-question').innerHTML = data.question;
-                currentSolution = data.solution || ""; // Lösung vom Backend holen
+            try {
+                const response = await fetch('/api/submit', { headers: { 'x-quiz-password': savedPassword } });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('quiz-section').classList.remove('hidden');
+                    document.getElementById('quiz-title').innerText = data.title;
+                    document.getElementById('quiz-question').innerHTML = data.question;
+                    currentSolution = data.solution || "";
+                    
+                    // Highscores setzen
+                    for (const [name, score] of Object.entries(data.scores || {})) {
+                        const el = document.getElementById(`score-${name}`);
+                        if (el) el.innerText = score;
+                    }
+                } else {
+                    localStorage.removeItem('team_quiz_pw');
+                    document.getElementById('login-section').classList.remove('hidden');
+                }
+            } catch (e) {
+                document.getElementById('login-section').classList.remove('hidden');
             }
         }
 
@@ -129,18 +131,30 @@
             const name = document.querySelector('input[name="colleague"]:checked')?.value;
             const answer = document.getElementById('code-editor').innerText;
             const resultMsg = document.getElementById('result-message');
+            const btn = document.getElementById('submit-btn');
 
-            if (!name || !answer.trim()) return resultMsg.innerText = "Bitte Name und Lösung eingeben.";
+            if (!name || !answer.trim()) return resultMsg.innerText = "Bitte Namen wählen und Lösung eingeben.";
 
-            const response = await fetch('/api/submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-quiz-password': savedPassword },
-                body: JSON.stringify({ name, answer })
-            });
+            btn.disabled = true;
+            resultMsg.innerText = "Sende Lösung...";
+            resultMsg.className = "status-msg processing";
 
-            const data = await response.json();
-            resultMsg.innerText = data.message;
-            if (response.ok) document.getElementById('code-editor').innerText = "";
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-quiz-password': savedPassword },
+                    body: JSON.stringify({ name, answer })
+                });
+                const data = await response.json();
+                resultMsg.innerText = data.message;
+                resultMsg.className = response.ok ? "status-msg success" : "status-msg error";
+                if (response.ok) document.getElementById('code-editor').innerText = "";
+            } catch (e) {
+                resultMsg.innerText = "Fehler bei der Übertragung.";
+                resultMsg.className = "status-msg error";
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function savePassword() {
