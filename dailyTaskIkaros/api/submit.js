@@ -1,3 +1,4 @@
+// MiZa 13.07.2026
 import { Resend } from 'resend';
 import fs from 'fs';
 import path from 'path';
