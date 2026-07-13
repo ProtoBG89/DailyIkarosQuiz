@@ -16,331 +16,24 @@ body {
 
 .hidden { display: none !important; }
 
-/* --- QUIZ WRAPPER CONTAINER (ERHÖHTE BREITE) --- */
+/* --- QUIZ WRAPPER CONTAINER --- */
 .quiz-container {
     background: #ffffff;
     padding: 48px;
     border-radius: 28px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
     width: 100%;
-    max-width: 960px; /* Erweitert, damit 3x bis zu 300px breite Avatare komfortabel passen */
+    max-width: 960px;
     height: auto;
-    min-height: 100%;
     box-sizing: border-box;
     margin: 20px auto;
 }
 
-/* --- APPLE TYPOGRAPHY HEADER --- */
-.apple-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.apple-header h1 {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #1d1d1f;
-    margin: 0 0 6px 0;
-}
-
-.apple-header .subtitle {
-    font-size: 15px;
-    color: #86868b;
-    margin: 0;
-    font-weight: 400;
-}
-
-/* --- LABEL ROW & LIVE INDICATOR --- */
-.label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.apple-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #86868b;
-}
-
-.live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #ff3b30;
-    background: rgba(255, 59, 48, 0.08);
-    padding: 3px 8px;
-    border-radius: 20px;
-}
-
-.pulse-dot {
-    width: 7px;
-    height: 7px;
-    background-color: #ff3b30;
-    border-radius: 50%;
-    animation: pulse 1.4s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6); }
-    70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
-    100% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
-}
-
-/* --- LIVE SCOREBOARD BANNER --- */
-.score-banner-box {
-    display: flex;
-    justify-content: space-around;
-    background: #f5f5f7;
-    padding: 18px;
-    border-radius: 16px;
-    margin-top: 4px;
-}
-
-.score-card {
-    text-align: center;
-}
-
-.score-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1d1d1f;
-}
-
-.score-name {
-    font-size: 12px;
-    color: #86868b;
-    font-weight: 600;
-    margin-top: 2px;
-}
-
-/* --- QUESTION DISPLAY BOX --- */
-.question-box {
-    background: #f5f5f7;
-    padding: 28px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.02);
-}
-
-.pill-tag {
-    display: inline-block;
-    background: #e8e8ed;
-    color: #515154;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.03em;
-    margin-bottom: 12px;
-}
-
-.question-box h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    letter-spacing: -0.01em;
-}
-
-.question-text {
-    font-size: 15px;
-    line-height: 1.6; /* Verfeinerte Lesbarkeit */
-    color: #424245;
-}
-
-/* --- INPUT SECTIONS & LABELS --- */
-.input-group {
-    margin-bottom: 28px;
-}
-
-input[type="text"],
-input[type="password"] {
+/* --- CODE EDITOR & PROGRESS BAR (GLOBAL) --- */
+.code-editor {
     width: 100%;
-    padding: 14px 16px;
-    font-size: 15px;
-    background-color: #ffffff;
-    border: 1px solid #d2d2d7;
-    border-radius: 12px;
-    box-sizing: border-box;
-    outline: none;
-    transition: all 0.2s ease;
-    color: #1d1d1f;
-}
-
-input::placeholder { color: #b6b6bb; }
-
-input:focus {
-    border-color: #0071e3;
-    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
-}
-
-/* --- PREMIUM ACTION BUTTONS & SPINNER --- */
-.apple-btn {
-    width: 100%;
-    padding: 15px;
-    background-color: #0071e3;
-    color: #ffffff;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 52px;
-}
-
-.apple-btn:hover { background-color: #0077ed; }
-.apple-btn:active { transform: scale(0.99); }
-.apple-btn:disabled { background-color: #86868b; cursor: not-allowed; }
-
-/* Lade-Spinner Animation */
-.spinner {
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* --- APPLE USER SELECTION CARDS (300px AVATARS & MICRO-INTERACTIONS) --- */
-.apple-user-container {
-    margin-bottom: 32px;
-}
-
-.apple-selector {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-}
-
-.apple-card {
-    flex: 1;
-    min-width: 0;
-    cursor: pointer;
-}
-
-.apple-card input[type="radio"] { display: none; }
-
-.apple-card .card-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 12px;
-    background: #ffffff;
-    border: 1px solid #d2d2d7;
-    border-radius: 18px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
-}
-
-/* Skaliert die Avatare groß bis max 280-300px */
-.avatar-img {
-    width: 100%;
-    max-width: 280px; 
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 14px;
-    display: block;
-    margin: 0 auto 12px auto;
-    transition: transform 0.25s ease;
-}
-
-.apple-card .name {
-    font-size: 14px;
-    font-weight: 500;
-    color: #1d1d1f;
-    text-align: center;
-}
-
-/* Micro-Interactions: Hover & Checked Zustände */
-.apple-card:hover .card-content {
-    border-color: #86868b;
-    background-color: #fafafa;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
-}
-
-.apple-card:hover .avatar-img {
-    transform: scale(1.02);
-}
-
-.apple-card input[type="radio"]:checked + .card-content {
-    border-color: #0071e3;
-    background-color: rgba(0, 113, 227, 0.03);
-    box-shadow: 0 0 0 2px #0071e3, 0 6px 16px rgba(0, 113, 227, 0.08);
-    transform: translateY(-3px);
-}
-
-.apple-card input[type="radio"]:checked + .card-content .name {
-    color: #0071e3;
-    font-weight: 600;
-}
-
-/* --- LOGIN SPECIFIC BOX --- */
-.login-box {
-    text-align: center;
-    padding: 10px 0;
-}
-
-.lock-icon { font-size: 40px; margin-bottom: 15px; }
-.login-box h3 { font-size: 22px; font-weight: 600; margin: 0 0 8px 0; }
-.login-box p { font-size: 14px; color: #6e6e73; margin: 0 0 20px 0; }
-.login-box input { margin-bottom: 15px; }
-
-/* --- FEEDBACK STATUS NOTIFICATIONS --- */
-.error-msg {
-    color: #ff3b30;
-    font-size: 13px;
-    font-weight: 500;
-    margin-top: 12px;
-}
-
-.status-msg {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 18px;
-    padding: 12px;
-    border-radius: 8px;
-}
-
-.status-msg.processing { color: #86868b; }
-.status-msg.success { color: #34c759; background: rgba(52, 199, 89, 0.08); }
-.status-msg.error { color: #ff3b30; background: rgba(255, 59, 48, 0.08); }
-
-/* --- MOBILE RESPONSIVE STYLING --- */
-@media (max-width: 768px) {
-    .apple-selector {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .avatar-img {
-        max-width: 180px; /* Auf kleineren Displays kompakter */
-    }
-    .quiz-container {
-        padding: 24px;
-        margin: 10px auto;
-    }
-
-    .code-editor {
-    width: 100%;
-    min-height: 50px;
-    padding: 14px 16px;
+    min-height: 120px;
+    padding: 16px;
     background: #1e1e1e; /* Dark IDE Theme */
     color: #d4d4d4;
     font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
@@ -350,13 +43,20 @@ input:focus {
     outline: none;
     white-space: pre-wrap;
     box-sizing: border-box;
+    margin-top: 10px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.code-editor:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
 }
 
 .progress-container {
-    height: 4px;
+    height: 6px;
     background: #e8e8ed;
-    border-radius: 2px;
-    margin-top: 8px;
+    border-radius: 3px;
+    margin: 12px 0;
     overflow: hidden;
 }
 
@@ -364,6 +64,44 @@ input:focus {
     height: 100%;
     background: #34c759;
     width: 0%;
-    transition: width 0.3s ease;
+    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+/* --- APPLE TYPOGRAPHY & LAYOUT --- */
+.apple-header { text-align: center; margin-bottom: 40px; }
+.apple-header h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: #1d1d1f; margin: 0 0 6px 0; }
+.apple-header .subtitle { font-size: 15px; color: #86868b; margin: 0; }
+
+.label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.apple-label { display: block; font-size: 13px; font-weight: 600; color: #86868b; margin-bottom: 6px; }
+
+/* --- LIVE SCOREBOARD & CARDS --- */
+.score-banner-box { display: flex; justify-content: space-around; background: #f5f5f7; padding: 18px; border-radius: 16px; margin-top: 4px; }
+.score-value { font-size: 24px; font-weight: 700; color: #1d1d1f; }
+.score-name { font-size: 12px; color: #86868b; font-weight: 600; margin-top: 2px; }
+
+.question-box { background: #f5f5f7; padding: 28px; border-radius: 16px; margin-bottom: 30px; }
+.pill-tag { background: #e8e8ed; color: #515154; font-size: 11px; font-weight: 600; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; display: inline-block; }
+
+/* --- AVATAR SELECTION --- */
+.apple-selector { display: flex; gap: 16px; margin-top: 8px; }
+.apple-card { flex: 1; cursor: pointer; }
+.apple-card input[type="radio"] { display: none; }
+.apple-card .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; border: 1px solid #d2d2d7; border-radius: 18px; transition: all 0.25s ease; }
+.avatar-img { width: 100%; max-width: 280px; aspect-ratio: 1/1; object-fit: cover; border-radius: 14px; margin-bottom: 12px; }
+
+.apple-card input[type="radio"]:checked + .card-content { border-color: #0071e3; background: rgba(0, 113, 227, 0.03); box-shadow: 0 0 0 2px #0071e3; }
+
+/* --- BUTTONS & STATUS --- */
+.apple-btn { width: 100%; padding: 15px; background-color: #0071e3; color: #fff; border: none; border-radius: 12px; font-size: 16px; cursor: pointer; }
+.apple-btn:disabled { background-color: #86868b; }
+
+.status-msg { text-align: center; font-size: 14px; font-weight: 500; margin-top: 18px; padding: 12px; border-radius: 8px; }
+.status-msg.success { color: #34c759; background: rgba(52, 199, 89, 0.08); }
+.status-msg.error { color: #ff3b30; background: rgba(255, 59, 48, 0.08); }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+    .apple-selector { flex-direction: column; gap: 12px; }
+    .quiz-container { padding: 24px; margin: 10px; }
 }
