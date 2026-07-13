@@ -90,12 +90,14 @@ export default async function handler(req, res) {
             return res.status(200).json({
                 title: todaysQuiz.title,
                 question: todaysQuiz.question,
-                scores: scoresObj // Schickt die Live-Punkte an das Frontend mit
+                solution: todaysQuiz.solution,
+                scores: scoresObj
             });
         } catch (dbError) {
             return res.status(200).json({
                 title: todaysQuiz.title,
                 question: todaysQuiz.question,
+                solution: todaysQuiz.solution,
                 scores: {}
             });
         }

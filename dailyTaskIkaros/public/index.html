@@ -90,6 +90,12 @@
                         <div class="code-editor-placeholder" aria-hidden="true">Dein Lösungscode hier...</div>
                     </div>
                 </div>
+                <div class="match-progress">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="progress-label">0%</span>
+                </div>
             </div>
 
             <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
@@ -103,6 +109,7 @@
     <script src="vendor/prism/prism.min.js"></script>
     <script src="vendor/prism/prism-javascript.min.js"></script>
     <script src="code-editor.js"></script>
+    <script src="quiz-logic.js"></script>
     <script>
         let savedPassword = localStorage.getItem('team_quiz_pw') || '';
 
@@ -129,6 +136,12 @@
                         document.getElementById('score-Farhat').innerText = data.scores["Farhat"] !== undefined ? data.scores["Farhat"] : 0;
                         document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
                         document.getElementById('score-Jannik').innerText = data.scores["Jannik"] !== undefined ? data.scores["Jannik"] : 0;
+                    }
+
+                    if (data.solution) {
+                        QuizLogic.init(data.solution);
+                    } else {
+                        QuizLogic.reset();
                     }
                 } else {
                     localStorage.removeItem('team_quiz_pw');

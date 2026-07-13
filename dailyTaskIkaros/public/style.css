@@ -263,6 +263,37 @@ input:focus {
     display: none;
 }
 
+.match-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background: #e8e8ed;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background-color: #ff3b30;
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.progress-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #86868b;
+    min-width: 36px;
+    text-align: right;
+}
+
 /* Monaco vs-dark token colors (Prism.js) */
 .code-editor-highlight .token.comment,
 .code-editor-highlight .token.prolog,
