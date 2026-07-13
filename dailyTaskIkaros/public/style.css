@@ -463,6 +463,17 @@ input:focus {
     font-weight: 600;
 }
 
+@keyframes greet-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-10px) scale(1.06); }
+    55% { transform: translateY(0) scale(1); }
+    75% { transform: translateY(-5px) scale(1.03); }
+}
+
+.avatar-img.greet-bounce {
+    animation: greet-bounce 0.6s ease;
+}
+
 /* --- LOGIN SPECIFIC BOX --- */
 .login-box {
     text-align: center;
