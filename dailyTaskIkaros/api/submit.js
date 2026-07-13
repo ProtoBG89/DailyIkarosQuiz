@@ -17,15 +17,32 @@ function getFormattedDate() {
 
 // Lädt die Quiz-Datenbank relativ zur Vercel-Serverless-Umgebung
 function getQuizData() {
-    // Da die Datei jetzt im selben Ordner wie submit.js liegt,
-    // liest Node.js sie direkt über __dirname aus.
     const filePath = path.join(__dirname, 'quiz-data.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(fileContents);
 }
 
+// Nutzt die exakten Umgebungsvariablen aus der Vercel-Supabase-Integration
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+
+// Hilfsfunktion zur internen Kommunikation mit Supabase über die REST-API
+async function supabaseRequest(endpoint, method = 'GET', body = null) {
+    const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+    const headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+    };
+    const config = { method, headers };
+    if (body) config.body = JSON.stringify(body);
+    const res = await fetch(url, config);
+    return res.json();
+}
+
 export default async function handler(req, res) {
-    // 1. Sichere Passwort-Validierung (Header bei GET, Body bei POST)
+    // Sichere Passwort-Validierung (Einheitlich über Header)
     const clientPassword = req.headers['x-quiz-password'] || req.body?.password;
     const masterPassword = process.env.QUIZ_PASSWORD;
 
@@ -59,15 +76,31 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: `Für heute (${todayStr}) existiert kein Rätsel.` });
     }
 
-    // --- FALL 1: Challenge für das Frontend laden (GET) ---
+    // --- FALL 1: Challenge & globale Highscores aus Supabase laden (GET) ---
     if (req.method === 'GET') {
-        return res.status(200).json({
-            title: todaysQuiz.title,
-            question: todaysQuiz.question
-        });
+        try {
+            const users = await supabaseRequest('quiz_scores?select=name,points');
+            const scoresObj = {};
+            
+            if (Array.isArray(users)) {
+                users.forEach(u => { scoresObj[u.name] = u.points; });
+            }
+
+            return res.status(200).json({
+                title: todaysQuiz.title,
+                question: todaysQuiz.question,
+                scores: scoresObj // Schickt die Live-Punkte an das Frontend mit
+            });
+        } catch (dbError) {
+            return res.status(200).json({
+                title: todaysQuiz.title,
+                question: todaysQuiz.question,
+                scores: {}
+            });
+        }
     }
 
-    // --- FALL 2: Antwort auswerten und per E-Mail senden (POST) ---
+    // --- FALL 2: Antwort auswerten und Punkte vergeben (POST) ---
     if (req.method === 'POST') {
         const { name, answer } = req.body;
 
@@ -82,23 +115,69 @@ export default async function handler(req, res) {
             const resend = new Resend(process.env.RESEND_API_KEY);
             
             try {
-                await resend.emails.send({
-                    from: 'Quiz-Bot <onboarding@resend.dev>',
-                    to: EMPFAENGER_EMAIL,
-                    subject: `🏆 Quiz gelöst von ${name}!`,
-                    html: `
-                        <div style="font-family: -apple-system, sans-serif; padding: 20px; color: #1d1d1f;">
-                            <h2 style="color: #34c759;">🎉 Challenge erfolgreich bezwungen!</h2>
-                            <p><strong>${name}</strong> hat das IKAROS-Daily-Quiz am <strong>${todayStr}</strong> gelöst.</p>
-                            <hr style="border: none; border-top: 1px solid #d2d2d7; margin: 20px 0;" />
-                            <p style="font-size: 13px; color: #86868b; text-transform: uppercase; margin-bottom: 4px;">Eingereichte Lösung:</p>
-                            <pre style="background: #f5f5f7; padding: 12px; border-radius: 8px; font-size: 14px;"><code>${cleanAnswer}</code></pre>
-                        </div>
-                    `
+                // Spielerdaten live aus Supabase holen
+                const userData = await supabaseRequest(`quiz_scores?name=eq.${name}`);
+                const user = Array.isArray(userData) ? userData[0] : null;
+
+                // Da last_solved in der DB ein DATE ist, liefert Postgres einen ISO-String (YYYY-MM-DD)
+                if (user && user.last_solved === todayStr) {
+                    // --- ERNEUTE RICHTIGE ANTWORT AM SELBEN TAG (BLOCKIEREN + HUMOR) ---
+                    try {
+                        await resend.emails.send({
+                            from: 'Quiz-Bot <onboarding@resend.dev>',
+                            to: EMPFAENGER_EMAIL,
+                            subject: `🛡️ Hacking-Alarm: ${name} schlägt wieder zu!`,
+                            html: `
+                                <div style="font-family: -apple-system, sans-serif; padding: 20px; color: #1d1d1f;">
+                                    <h2 style="color: #ff9500;">🛡️ Systemwarnung: Doppelter Count blockiert</h2>
+                                    <p><strong>${name}</strong> hat versucht, die heutige Challenge (${todayStr}) ein weiteres Mal einzureichen.</p>
+                                    <p><em>Status: Hacking-Versuch abgelehnt. Das System hat bereits eine richtige Antwort heute erkannt... Nice try, ${name}! 😉</em></p>
+                                    <hr style="border: none; border-top: 1px solid #d2d2d7; margin: 20px 0;" />
+                                    <p style="font-size: 13px; color: #86868b; text-transform: uppercase; margin-bottom: 4px;">Eingabe:</p>
+                                    <pre style="background: #fff3cd; padding: 12px; border-radius: 8px; font-size: 14px; color: #664d03;"><code>${cleanAnswer}</code></pre>
+                                </div>
+                            `
+                        });
+                    } catch (mailErr) {}
+
+                    return res.status(200).json({ 
+                        message: `🛡️ Hacking-Versuch abgelehnt! Das System hat für heute bereits eine richtige Antwort von dir registriert... Nice try, ${name}! 😉` 
+                    });
+                }
+
+                // --- ERSTE RICHTIGE ANTWORT DES TAGES (PUNKT GEBEN) ---
+                const nextPoints = (user ? user.points : 0) + 1;
+                
+                // Supabase Update ausführen
+                await supabaseRequest(`quiz_scores?name=eq.${name}`, 'PATCH', {
+                    points: nextPoints,
+                    last_solved: todayStr
                 });
-                return res.status(200).json({ message: 'Absolut richtig! E-Mail ist raus.' });
-            } catch (error) {
-                return res.status(500).json({ message: 'Code korrekt, aber Mail-Versand fehlgeschlagen.' });
+
+                // Reguläre Erfolgs-Mail senden
+                try {
+                    await resend.emails.send({
+                        from: 'Quiz-Bot <onboarding@resend.dev>',
+                        to: EMPFAENGER_EMAIL,
+                        subject: `🏆 Quiz gelöst von ${name}!`,
+                        html: `
+                            <div style="font-family: -apple-system, sans-serif; padding: 20px; color: #1d1d1f;">
+                                <h2 style="color: #34c759;">🎉 Challenge erfolgreich bezwungen!</h2>
+                                <p><strong>${name}</strong> hat das IKAROS-Daily-Quiz am <strong>${todayStr}</strong> gelöst.</p>
+                                <p><em>Punkt gewertet: Ja ✅ (Erste Abgabe heute). Neuer Stand: ${nextPoints} Punkte.</em></p>
+                                <hr style="border: none; border-top: 1px solid #d2d2d7; margin: 20px 0;" />
+                                <p style="font-size: 13px; color: #86868b; text-transform: uppercase; margin-bottom: 4px;">Eingereichte Lösung:</p>
+                                <pre style="background: #f5f5f7; padding: 12px; border-radius: 8px; font-size: 14px;"><code>${cleanAnswer}</code></pre>
+                            </div>
+                        `
+                    });
+                } catch (mailErr) {}
+                
+                return res.status(200).json({ message: `🎉 Absolut richtig, ${name}! Dein Punkt wurde gezählt und die E-Mail ist raus.` });
+
+            } catch (dbError) {
+                console.error("Supabase / Resend Error:", dbError);
+                return res.status(500).json({ message: 'Code korrekt, aber Fehler bei der Verarbeitung im Backend.' });
             }
         } else {
             return res.status(400).json({ message: 'Leider falsch! Schau noch mal genau hin. (Hinweis: Die Eingabe ist case-sensitiv und muss mit einem Semikolon ; enden)' });
