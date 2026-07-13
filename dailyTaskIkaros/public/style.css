@@ -180,6 +180,178 @@ input:focus {
     box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
 }
 
+/* --- CODE EDITOR (PRISM + CONTENTEDITABLE, MONACO VS-DARK) --- */
+.code-editor {
+    width: 100%;
+    max-height: 160px;
+    overflow: auto;
+    background-color: #1e1e1e;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.code-editor:focus-within {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+}
+
+.code-editor-inner {
+    display: grid;
+    grid-template-areas: "editor";
+}
+
+.code-editor-highlight,
+.code-editor-input,
+.code-editor-placeholder {
+    grid-area: editor;
+    margin: 0;
+    padding: 12px 16px;
+    border: 0;
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 20px;
+    letter-spacing: normal;
+    word-spacing: normal;
+    tab-size: 2;
+    -moz-tab-size: 2;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+}
+
+.code-editor-highlight {
+    pointer-events: none;
+    user-select: none;
+    color: #d4d4d4;
+    background: transparent;
+}
+
+.code-editor-input {
+    position: relative;
+    z-index: 1;
+    min-height: 20px;
+    width: 100%;
+    display: block;
+    outline: none;
+    color: rgba(0, 0, 0, 0);
+    caret-color: #aeafad;
+    background: transparent;
+    resize: none;
+    overflow: hidden;
+}
+
+.code-editor-input::selection {
+    background: rgba(38, 79, 120, 0.99);
+    color: rgba(0, 0, 0, 0);
+}
+
+.code-editor-placeholder {
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    color: #6a6a6a;
+}
+
+.code-editor-inner:not(.is-empty) .code-editor-placeholder {
+    display: none;
+}
+
+.match-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background: #e8e8ed;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background-color: #ff3b30;
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.progress-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #86868b;
+    min-width: 36px;
+    text-align: right;
+}
+
+/* Monaco vs-dark token colors (Prism.js) */
+.code-editor-highlight .token.comment,
+.code-editor-highlight .token.prolog,
+.code-editor-highlight .token.doctype,
+.code-editor-highlight .token.cdata {
+    color: #6a9955;
+}
+
+.code-editor-highlight .token.punctuation {
+    color: #d4d4d4;
+}
+
+.code-editor-highlight .token.property,
+.code-editor-highlight .token.tag,
+.code-editor-highlight .token.boolean,
+.code-editor-highlight .token.number,
+.code-editor-highlight .token.constant,
+.code-editor-highlight .token.symbol,
+.code-editor-highlight .token.deleted {
+    color: #b5cea8;
+}
+
+.code-editor-highlight .token.selector,
+.code-editor-highlight .token.attr-name,
+.code-editor-highlight .token.string,
+.code-editor-highlight .token.char,
+.code-editor-highlight .token.builtin,
+.code-editor-highlight .token.inserted {
+    color: #ce9178;
+}
+
+.code-editor-highlight .token.operator,
+.code-editor-highlight .token.entity,
+.code-editor-highlight .token.url,
+.code-editor-highlight .token.variable {
+    color: #d4d4d4;
+}
+
+.code-editor-highlight .token.atrule,
+.code-editor-highlight .token.attr-value,
+.code-editor-highlight .token.keyword {
+    color: #569cd6;
+}
+
+.code-editor-highlight .token.function,
+.code-editor-highlight .token.class-name {
+    color: #dcdcaa;
+}
+
+.code-editor-highlight .token.regex,
+.code-editor-highlight .token.important {
+    color: #d16969;
+}
+
+.code-editor-highlight .token.namespace {
+    color: #4ec9b0;
+}
+
 /* --- PREMIUM ACTION BUTTONS & SPINNER --- */
 .apple-btn {
     width: 100%;

@@ -83,7 +83,19 @@
 
             <div class="input-group">
                 <label for="answer" class="apple-label">Deine Antwort</label>
-                <input type="text" id="answer" placeholder="Dein Lösungscode hier...">
+                <div class="code-editor">
+                    <div class="code-editor-inner" id="code-editor-inner">
+                        <div id="answer-highlight" class="code-editor-highlight" aria-hidden="true"></div>
+                        <div id="answer" class="code-editor-input" contenteditable="plaintext-only" role="textbox" aria-multiline="true" spellcheck="false"></div>
+                        <div class="code-editor-placeholder" aria-hidden="true">Dein Lösungscode hier...</div>
+                    </div>
+                </div>
+                <div class="match-progress">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="progress-label">0%</span>
+                </div>
             </div>
 
             <button class="apple-btn" id="submit-btn" onclick="submitAnswer()">
@@ -94,6 +106,10 @@
         </div>
     </div>
 
+    <script src="vendor/prism/prism.min.js"></script>
+    <script src="vendor/prism/prism-javascript.min.js"></script>
+    <script src="code-editor.js"></script>
+    <script src="quiz-logic.js"></script>
     <script>
         let savedPassword = localStorage.getItem('team_quiz_pw') || '';
 
@@ -121,6 +137,12 @@
                         document.getElementById('score-Silviu').innerText = data.scores["Silviu"] !== undefined ? data.scores["Silviu"] : 0;
                         document.getElementById('score-Jannik').innerText = data.scores["Jannik"] !== undefined ? data.scores["Jannik"] : 0;
                     }
+
+                    if (data.solution) {
+                        QuizLogic.init(data.solution);
+                    } else {
+                        QuizLogic.reset();
+                    }
                 } else {
                     localStorage.removeItem('team_quiz_pw');
                     savedPassword = '';
@@ -145,7 +167,7 @@
         async function submitAnswer() {
             const selectedRadio = document.querySelector('input[name="colleague"]:checked');
             const name = selectedRadio ? selectedRadio.value : '';
-            const answer = document.getElementById('answer').value;
+            const answer = CodeEditor.getValue();
             const resultMsg = document.getElementById('result-message');
             const submitBtn = document.getElementById('submit-btn');
             const btnText = submitBtn.querySelector('.btn-text');
@@ -157,7 +179,7 @@
                 return;
             }
 
-            if (!answer.trim()) {
+            if (!answer) {
                 resultMsg.innerText = "Bitte trage zuerst deine Lösung ein.";
                 resultMsg.className = "status-msg error";
                 return;
@@ -185,7 +207,7 @@
                 if (response.ok) {
                     resultMsg.innerText = data.message;
                     resultMsg.className = "status-msg success";
-                    document.getElementById('answer').value = ""; 
+                    CodeEditor.clear();
                     setTimeout(loadCurrentQuestion, 1500); 
                 } else {
                     resultMsg.innerText = data.message;
