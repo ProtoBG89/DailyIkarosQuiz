@@ -114,32 +114,87 @@
         });
     }
 
-    function handleAvatarClick(event) {
-        const avatar = event.currentTarget.querySelector('.avatar-img');
-        if (!avatar) return;
+    let activeAvatar = null;
 
-        avatar.classList.remove('greet-bounce');
-        void avatar.offsetWidth;
-        avatar.classList.add('greet-bounce');
+    function getAvatarCard(name) {
+        const radio = document.querySelector('.apple-card input[name="colleague"][value="' + name + '"]');
+        return radio ? radio.closest('.apple-card') : null;
     }
 
-    function handleAvatarAnimationEnd(event) {
-        if (event.animationName === 'greet-bounce') {
-            event.target.classList.remove('greet-bounce');
+    function getAvatarAssets(name) {
+        const img = getAvatarCard(name)?.querySelector('.avatar-img');
+        if (!img) return null;
+        return {
+            static: img.dataset.static || img.getAttribute('src'),
+            animated: img.dataset.animated
+        };
+    }
+
+    function preloadAvatarAnimations() {
+        document.querySelectorAll('.avatar-img[data-animated]').forEach(img => {
+            const preload = new Image();
+            preload.src = img.dataset.animated;
+        });
+    }
+
+    function resetAvatarToStatic(name) {
+        const img = getAvatarCard(name)?.querySelector('.avatar-img');
+        const assets = getAvatarAssets(name);
+        if (!img || !assets?.static) return;
+
+        img.classList.remove('avatar-animating', 'avatar-frozen');
+        img.style.opacity = '1';
+        img.src = assets.static;
+    }
+
+    function playAvatarAnimation(name) {
+        if (activeAvatar === name) return;
+
+        const assets = getAvatarAssets(name);
+        if (!assets?.animated) return;
+
+        if (activeAvatar) {
+            resetAvatarToStatic(activeAvatar);
         }
+
+        activeAvatar = name;
+
+        const img = getAvatarCard(name)?.querySelector('.avatar-img');
+        if (!img) return;
+
+        img.classList.remove('avatar-frozen');
+        img.classList.add('avatar-animating');
+        img.style.opacity = '0';
+
+        requestAnimationFrame(() => {
+            img.src = assets.animated + '?play=' + Date.now();
+            img.onload = () => {
+                img.style.opacity = '1';
+                img.classList.remove('avatar-animating');
+                img.classList.add('avatar-frozen');
+            };
+        });
+    }
+
+    function handleAvatarChange(event) {
+        if (!event.target.checked) return;
+        playAvatarAnimation(event.target.value);
     }
 
     function initAvatarInteraction() {
-        document.querySelectorAll('.apple-card').forEach(card => {
-            card.removeEventListener('click', handleAvatarClick);
-            card.addEventListener('click', handleAvatarClick);
+        preloadAvatarAnimations();
 
-            const avatar = card.querySelector('.avatar-img');
-            if (avatar) {
-                avatar.removeEventListener('animationend', handleAvatarAnimationEnd);
-                avatar.addEventListener('animationend', handleAvatarAnimationEnd);
-            }
+        document.querySelectorAll('.apple-card input[name="colleague"]').forEach(radio => {
+            radio.removeEventListener('change', handleAvatarChange);
+            radio.addEventListener('change', handleAvatarChange);
         });
+    }
+
+    function resetAllAvatars() {
+        document.querySelectorAll('.apple-card input[name="colleague"]').forEach(radio => {
+            resetAvatarToStatic(radio.value);
+        });
+        activeAvatar = null;
     }
 
     function triggerHackingAlarm() {
@@ -185,6 +240,7 @@
         animateCounter,
         updateHighscores,
         initAvatarInteraction,
+        resetAllAvatars,
         triggerHackingAlarm,
         init,
         reset
