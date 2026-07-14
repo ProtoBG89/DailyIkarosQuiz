@@ -55,7 +55,7 @@
     "solution": "event.setContractualClaim(claims);"
   },
   "2026-07-14": {
-    "title": "👤 Kontaktereignisse (Sonntag)",
+    "title": "👤 Kontaktereignisse (Dienstag)",
     "question": "Auskunftedaten betreffen primär den Schuldner (Debitor) als Person, nicht direkt die Akte. Mit welcher Methode des <code>debtor</code>-Objekts erzeugst du einen rein personen-bezogenen Vorgang mittels <code>eventCode</code>?",
     "solution": "debtor.createContactEvent(eventCode);"
   },
