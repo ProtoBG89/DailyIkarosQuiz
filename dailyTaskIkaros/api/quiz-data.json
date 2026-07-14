@@ -29,12 +29,12 @@
     "question": "Wenn eine Zahlung nicht eindeutig zugeordnet werden kann, soll die laufende Transaktion auf den Status 'Unklar' gesetzt werden. Welche Methode rufst du auf dem <code>accountingTransaction</code>-Objekt auf?",
     "solution": "accountingTransaction.setStatusToUncertain();"
   },
-  "2026-07-14": {
+  "2026-07-15": {
     "title": "🔍 Vorgangssuche via ID (Dienstag)",
     "question": "Du möchtest bei einer Rücklastschrift den ursprünglichen Vorgang anhand seiner End-to-End-ID (<code>id</code>) lokalisieren. Welche Methode des <code>cCase</code>-Objekts durchsucht die Akte danach?",
     "solution": "cCase.findEventToEndToEndIdentification(id);"
   },
-  "2026-07-15": {
+  "2026-07-14": {
     "title": "⚙️ String-Konfiguration auslesen (Mittwoch)",
     "question": "Um einen Konfigurationswert als Text mit einem Fallback auszulesen, nutzt du <code>fs.getSettingString(name, application, default)</code>. Wie heißt die native Schwestermethode für Standard-Settings ohne vordefinierten String-Typ, die du im Posteingangs-Skript mit <code>(name, section)</code> aufrufst?",
     "solution": "fs.getSetting(name, section);"
